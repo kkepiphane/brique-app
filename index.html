@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#B4472A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Brique">
+<meta name="description" content="Brique — gère tes dépenses chaque jour et construis ton rêve, brique par brique.">
+<title>Brique</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF5EE; --card:#FFFFFF; --ink:#1C1917; --muted:#6B635A; --line:#EADFD2;
+  --brick:#B4472A; --brick2:#C25A3A; --brickDark:#8F3520; --soft:#F3E6DA; --empty:#EFE5D8;
+  --flame:#D9861E; --night:#1C1917; --night2:#26221F; --night3:#36302B; --nightMuted:#B5ACA2; --gold:#F0B86A;
+  --display:'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+  --body:'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;min-height:100dvh}
+button{font-family:inherit;cursor:pointer;color:inherit}
+input,select{font-family:inherit;font-size:16px;color:var(--ink)}
+a{color:var(--brick)}
+.shell{max-width:440px;margin:0 auto;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 20px) 20px calc(env(safe-area-inset-bottom) + 160px) 20px;gap:16px}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.col{display:flex;flex-direction:column;gap:6px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.xs{font-size:12px}
+.display{font-family:var(--display);letter-spacing:-0.02em}
+.h1{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-0.02em;margin:0}
+.h2{font-family:var(--display);font-size:19px;font-weight:700;margin:0}
+.eyebrow{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px 18px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 10px;font-weight:700;font-size:15px}
+.btn{border:none;border-radius:18px;min-height:52px;padding:0 20px;font-size:16px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-brick{background:var(--brick);color:#fff}
+.btn-ghost{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+.btn-light{background:#FAF5EE;color:var(--ink)}
+.btn-block{width:100%}
+.btn[disabled]{background:#7A7168;color:#fff;cursor:not-allowed}
+.link{background:none;border:none;color:var(--brick);font-weight:600;font-size:14px;padding:10px 0;min-height:44px;display:inline-flex;align-items:center;gap:6px}
+.iconbtn{width:44px;height:44px;border-radius:14px;background:var(--card);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.hero{background:var(--brick);color:#fff;border-radius:28px;padding:22px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;border:none;text-align:left;width:100%}
+.hero .amount{font-family:var(--display);font-size:62px;font-weight:800;letter-spacing:-0.04em;line-height:1}
+.hero .unit{font-family:var(--display);font-size:26px;font-weight:700}
+.bar{height:10px;background:rgba(255,255,255,.25);border-radius:999px;overflow:hidden}
+.bar > i{display:block;height:100%;background:#fff;border-radius:999px}
+.hero-bricks{position:absolute;right:-18px;top:-14px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:120px;opacity:.16}
+.hero-bricks span{height:22px;background:#fff;border-radius:4px}
+.banner{border-radius:20px;padding:14px 16px;display:flex;align-items:center;gap:12px;border:none;width:100%;text-align:left;font-size:15px}
+.banner.night{background:var(--night);color:#fff}
+.banner.soft{background:var(--soft);color:var(--ink)}
+.item{display:flex;align-items:center;gap:12px;padding:9px 0;border:none;background:none;width:100%;text-align:left;font-size:15px}
+.tile{width:40px;height:40px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--brickDark);flex-shrink:0}
+.grow{flex:1;min-width:0}
+.ellipsis{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 8px calc(env(safe-area-inset-bottom) + 10px);z-index:5}
+.nav-in{display:flex;justify-content:space-around;width:100%;max-width:440px}
+.nav button{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted);min-width:64px;min-height:48px;padding:4px}
+.nav button[aria-current="page"]{color:var(--brick)}
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 78px);width:calc(100% - 40px);max-width:400px;z-index:4;box-shadow:0 8px 24px rgba(28,25,23,.18)}
+.wall{display:flex;flex-direction:column;gap:4px}
+.wall .r{display:flex;gap:4px}
+.wall .b{flex:2;border-radius:3px;background:var(--empty)}
+.wall .b.h{flex:1}
+.wall .b.f{background:var(--brick)}
+.wall .b.f2{background:var(--brick2)}
+.wall .b.new{animation:drop .55s cubic-bezier(.2,1.5,.4,1) both;animation-delay:calc(var(--i) * 70ms)}
+@keyframes drop{from{transform:translateY(-26px) scale(.7);opacity:0}to{transform:none;opacity:1}}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.steps .s{display:flex;flex-direction:column;gap:5px}
+.steps .s i{height:6px;border-radius:999px;background:var(--line)}
+.steps .s.done i{background:var(--brick)}
+.steps .s.now i{background:#E2A48C}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--display);font-size:19px;font-weight:800}
+.insight{background:var(--night);color:#fff;border-radius:22px;padding:16px 18px;display:flex;gap:14px;align-items:center}
+.catbar{height:8px;background:var(--empty);border-radius:999px;overflow:hidden}
+.catbar i{display:block;height:100%;background:var(--brick);border-radius:999px}
+/* sheets */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;justify-content:center;background:rgba(28,25,23,.35);animation:fade .2s both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--bg);width:100%;max-width:440px;min-height:100%;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 18px) 20px calc(env(safe-area-inset-bottom) + 20px);gap:14px;overflow-y:auto;animation:up .25s cubic-bezier(.2,.9,.3,1) both}
+.sheet.dark{background:var(--night);color:#FAF5EE}
+.sheet.dark .muted{color:var(--nightMuted)}
+@keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.amountbig{font-family:var(--display);font-size:64px;font-weight:800;letter-spacing:-0.04em;line-height:1}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pad button{height:54px;border-radius:16px;border:none;background:#fff;font-family:var(--display);font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.pad button:active{background:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;margin:0 -20px;padding:2px 20px 4px;scrollbar-width:none}
+.chips.scroll::-webkit-scrollbar{display:none}
+.chips.scroll .pill{flex-shrink:0}
+.sheet .pad button{height:50px}
+.sheet .amountbig{font-size:56px}
+.pill{border:1px solid var(--line);background:#fff;border-radius:14px;padding:8px 12px;font-size:14px;font-weight:600;min-height:44px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.pill small{font-size:11px;font-weight:500;opacity:.8}
+.pill[aria-pressed="true"]{background:var(--brick);border-color:var(--brick);color:#fff}
+.sugg{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px dashed #D9A58E;border-radius:18px;padding:11px 14px;text-align:left;width:100%}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:600;color:var(--muted)}
+.input{border:1px solid var(--line);background:#fff;border-radius:14px;min-height:50px;padding:0 14px;width:100%}
+.input:focus{outline:2px solid var(--brick);outline-offset:1px}
+.option{display:flex;align-items:center;gap:12px;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:14px 16px;text-align:left;width:100%;font-size:15px}
+.option[aria-pressed="true"]{border-color:var(--brick);background:#FBEDE6}
+.dots{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.dots div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--nightMuted)}
+.dots i{width:34px;height:34px;border-radius:12px;border:1.5px solid #4A423B}
+.dots i.on{background:var(--brick);border-color:var(--brick)}
+.dots i.jk{background:transparent;border-color:var(--gold);border-style:dashed}
+.dots i.today{border-color:var(--gold)}
+.dots i.today.on{background:var(--gold);border-color:var(--gold)}
+.nightcard{background:var(--night2);border-radius:20px;padding:14px 16px}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 150px);transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:16px;font-size:14px;font-weight:600;z-index:40;max-width:calc(100% - 40px);box-shadow:0 8px 24px rgba(0,0,0,.25);animation:fade .2s both}
+.dialog{position:fixed;inset:0;z-index:30;background:rgba(28,25,23,.5);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.dialog .box{background:#fff;border-radius:24px;padding:20px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px;animation:up .2s both}
+.loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--muted)}
+.loadbricks{display:grid;grid-template-columns:repeat(3,24px);gap:5px}
+.loadbricks span{height:14px;border-radius:3px;background:var(--brick);animation:drop .8s infinite alternate}
+.loadbricks span:nth-child(2){animation-delay:.15s}.loadbricks span:nth-child(3){animation-delay:.3s}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.big-plus{font-family:var(--display);font-size:84px;font-weight:800;letter-spacing:-0.05em;line-height:.95;color:var(--gold)}
+.mini-bricks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;width:240px}
+.mini-bricks span{height:26px;border-radius:4px;background:var(--brick)}
+.mini-bricks span:nth-child(3n){background:var(--brick2)}
+.mini-bricks span.new{animation:drop .5s cubic-bezier(.2,1.5,.4,1) both;animation-delay:calc(var(--i) * 90ms)}
+.warn{background:#FFF4E5;border:1px solid #F3D3A6;border-radius:16px;padding:10px 14px;font-size:13px;color:#5C3D0E}
+hr.sep{border:none;border-top:1px solid var(--line);margin:4px 0}
+.list-head{padding-top:6px}
+textarea.input{padding:12px 14px;min-height:110px;font-size:13px;font-family:ui-monospace,monospace}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading"><div class="loadbricks"><span></span><span></span><span></span></div><span>Chargement de ton chantier…</span></div></div>
+<div id="sheet"></div>
+<div id="dialog"></div>
+<div id="toast" aria-live="polite"></div>
+<script>
+'use strict';
+/* =========================================================
+   Brique — gestion des dépenses quotidienne et motivante
+   Données : stockage Claude (par personne) si disponible,
+   sinon stockage local de l'appareil.
+   ========================================================= */
+
+/* ---------- Constantes ---------- */
+const CATS = [
+  { id: 'transport', n: 'Transport', s: 'Zem, taxi, carburant' },
+  { id: 'nourriture', n: 'Nourriture', s: 'Repas, petit-déj' },
+  { id: 'telephone', n: 'Téléphone', s: 'Crédit, internet' },
+  { id: 'courses', n: 'Courses', s: 'Marché, boutique' },
+  { id: 'famille', n: 'Famille', s: 'Aide, cadeaux' },
+  { id: 'maison', n: 'Maison', s: 'Eau, électricité' },
+  { id: 'sante', n: 'Santé', s: 'Pharmacie, soins' },
+  { id: 'sorties', n: 'Sorties', s: 'Loisirs, sorties' },
+  { id: 'business', n: 'Business', s: 'Outils, pro' },
+  { id: 'autre', n: 'Autre', s: '' }
+];
+const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
+const DEFAULT_SHORTCUTS = [
+  { c: 'transport', a: 500 }, { c: 'nourriture', a: 1500 }, { c: 'telephone', a: 1000 },
+  { c: 'nourriture', a: 500 }, { c: 'courses', a: 2000 }, { c: 'transport', a: 300 }
+];
+const INCOME_SRC = [
+  { id: 'salaire', n: 'Salaire' }, { id: 'freelance', n: 'Freelance' }, { id: 'business', n: 'Business' },
+  { id: 'cadeau', n: 'Cadeau' }, { id: 'autre', n: 'Autre' }
+];
+const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const DAYS = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+let IS_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+
+/* ---------- Utilitaires ---------- */
+const pad2 = n => String(n).padStart(2, '0');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function fmt(n) {
+  n = Math.round(Number(n) || 0);
+  const s = Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return (n < 0 ? '−' : '') + s;
+}
+const F = n => fmt(n) + ' F';
+function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+/* Une « journée » va de 4 h à 4 h : une dépense à 1 h du matin compte pour la veille. */
+function dayKey(date) { return ymd(new Date((date ? new Date(date) : new Date()).getTime() - 4 * 3600e3)); }
+const today = () => dayKey(new Date());
+function parseDay(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function addDays(s, n) { const d = parseDay(s); d.setDate(d.getDate() + n); return ymd(d); }
+function diffDays(a, b) { const A = parseDay(a), B = parseDay(b); return Math.round((Date.UTC(B.getFullYear(), B.getMonth(), B.getDate()) - Date.UTC(A.getFullYear(), A.getMonth(), A.getDate())) / 864e5); }
+function weekStart(s) { const d = parseDay(s); const wd = (d.getDay() + 6) % 7; d.setDate(d.getDate() - wd); return ymd(d); }
+function longDate(s) { const d = parseDay(s); return DAYS[d.getDay()].replace(/^./, c => c.toUpperCase()) + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()]; }
+function shortDate(s) { const d = parseDay(s); return d.getDate() + ' ' + MONTHS[d.getMonth()]; }
+function monthLabel(k) { const [y, m] = k.split('-').map(Number); return MONTHS[m - 1].replace(/^./, c => c.toUpperCase()) + ' ' + y; }
+function roughDate(s) { const d = parseDay(s); const p = d.getDate() <= 10 ? 'début ' : d.getDate() <= 20 ? 'mi-' : 'fin '; return p + MONTHS[d.getMonth()] + ' ' + d.getFullYear(); }
+function hhmm(t) { const d = new Date(t); return pad2(d.getHours()) + 'h' + pad2(d.getMinutes()); }
+const floor50 = n => Math.max(0, Math.floor(n / 50) * 50);
+const sum = (arr, f) => arr.reduce((s, x) => s + (f ? f(x) : x), 0);
+function nextPayDate(payDay, fromDay) {
+  /* prochaine date de paie strictement après fromDay */
+  const d = parseDay(fromDay);
+  let y = d.getFullYear(), m = d.getMonth();
+  for (let i = 0; i < 3; i++) {
+    const last = new Date(y, m + 1, 0).getDate();
+    const cand = ymd(new Date(y, m, Math.min(payDay, last)));
+    if (cand > fromDay) return cand;
+    m++; if (m > 11) { m = 0; y++; }
+  }
+  return addDays(fromDay, 30);
+}
+
+/* ---------- Stockage ---------- */
+const Store = {
+  mode: 'local', db: null, uid: null, queues: {}, note: '', readOnly: false,
+  async init() {
+    let inFrame = false; try { inFrame = window.top !== window.self; } catch (e) { inFrame = true; }
+    for (let i = 0; !IS_CLAUDE && inFrame && i < 20; i++) { await sleep(100); IS_CLAUDE = !!(window.claude && typeof window.claude.use === 'function'); }
+    if (IS_CLAUDE) {
+      try {
+        const res = await Promise.race([
+          Promise.all([window.claude.use('db'), window.claude.use('user')]),
+          sleep(12000).then(() => null)
+        ]);
+        if (res && res[0] && res[1]) {
+          const id = await res[1].id();
+          if (id) { this.db = res[0]; this.uid = id; this.mode = 'cloud'; }
+        }
+      } catch (e) { /* on reste en local */ }
+      if (this.mode !== 'cloud') this.note = 'Sauvegarde en ligne indisponible : tes données restent sur cet appareil pour l’instant.';
+    }
+    if (this.mode === 'local') {
+      try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+    }
+  },
+  path(id) { return 'data/users/' + this.uid + '/' + id; },
+  async loadAll() {
+    const out = {};
+    if (this.mode === 'cloud') {
+      const snap = await Promise.race([
+        this.db.collection('data/users/' + this.uid).get(),
+        sleep(12000).then(() => { throw { code: 'timeout' }; })
+      ]);
+      snap.docs.forEach(d => { if (d.exists) out[d.id] = clone(d.data()); });
+    } else {
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf('brique:') === 0) out[k.slice(7)] = JSON.parse(localStorage.getItem(k));
+        }
+      } catch (e) { this.note = 'Le stockage de cet appareil est bloqué : tes données ne seront pas gardées.'; }
+    }
+    return out;
+  },
+  save(id, data) {
+    const body = clone(data);
+    if (this.mode === 'local') {
+      try { localStorage.setItem('brique:' + id, JSON.stringify(body)); }
+      catch (e) { toast('Impossible d’enregistrer sur cet appareil.'); }
+      return;
+    }
+    if (this.readOnly) return;
+    const q = this.queues[id] || (this.queues[id] = { busy: false, next: null });
+    q.next = body;
+    if (!q.busy) this.flush(id);
+  },
+  async flush(id) {
+    const q = this.queues[id]; q.busy = true;
+    while (q.next) {
+      const body = q.next; q.next = null;
+      try { await this.db.doc(this.path(id)).set(body); }
+      catch (e) {
+        if (e && e.code === 'unavailable') {
+          await sleep(700 + Math.random() * 900);
+          try { await this.db.doc(this.path(id)).set(body); } catch (e2) { this.fail(e2); }
+        } else this.fail(e);
+      }
+    }
+    q.busy = false;
+  },
+  async remove(id) {
+    if (this.mode === 'local') { try { localStorage.removeItem('brique:' + id); } catch (e) {} return; }
+    try { await this.db.doc(this.path(id)).delete(); } catch (e) { this.fail(e); }
+  },
+  fail(e) {
+    const c = e && e.code;
+    if (c === 'invalid_argument' || c === 'not_granted' || c === 'revoked') { this.readOnly = true; toast('Enregistrement impossible ici : demande l’accès « Contributeur » ou installe ta propre copie.'); }
+    else if (c === 'quota_exceeded') toast('Espace de sauvegarde plein : exporte puis supprime d’anciens mois.');
+    else toast('Pas de connexion : réessaie dans un instant.');
+  }
+};
+
+/* ---------- État ---------- */
+const S = {
+  profile: null,
+  months: {},
+  ui: { tab: 'home', sheet: null, form: {}, month: null, dialog: null }
+};
+function mk(day) { return day.slice(0, 7); }
+function month(k) {
+  return S.months[k] || (S.months[k] = { expenses: [], incomes: [], deposits: [], closes: {}, adjustments: [] });
+}
+function saveMonth(k) { Store.save('m-' + k, S.months[k]); }
+function saveProfile() { Store.save('profile', S.profile); }
+function all(kind) { let r = []; for (const k in S.months) r = r.concat(S.months[k][kind] || []); return r; }
+function allCloses() { const o = {}; for (const k in S.months) Object.assign(o, S.months[k].closes || {}); return o; }
+
+/* ---------- Calculs (règles du cahier des charges, section 5) ---------- */
+function balance() {
+  return sum(all('incomes'), x => x.a) + sum(all('adjustments'), x => x.a)
+    - sum(all('expenses'), x => x.a) - sum(all('deposits'), x => x.a);
+}
+function chargeStart() {
+  return S.profile.mode === 'irregulier' ? today().slice(0, 8) + '01' : S.profile.periodStart;
+}
+function chargePaid(c) {
+  const start = chargeStart();
+  if (S.profile.chargesPaidInit && S.profile.chargesPaidInit[c.id] && S.profile.chargesPaidInit[c.id] >= start) return true;
+  return all('expenses').some(e => e.charge === c.id && e.day >= start);
+}
+function cRest() { return sum((S.profile.charges || []).filter(c => !chargePaid(c)), c => c.amount); }
+function goal() { return S.profile.goal && !S.profile.goal.done ? S.profile.goal : null; }
+function eRest(excludeEveningOf) {
+  const g = goal(); if (!g || !g.per) return 0;
+  const since = sum(all('deposits').filter(d => d.goal === g.id && d.day >= S.profile.periodStart && !(d.kind === 'evening' && d.day === excludeEveningOf)), d => d.a);
+  return Math.max(0, g.per - since);
+}
+function daysLeft() {
+  const nx = S.profile.nextIncome;
+  if (!nx) return 30;
+  const d = diffDays(today(), nx);
+  if (d <= 0) return 7;
+  return d;
+}
+function incomeOverdue() { const nx = S.profile.nextIncome; return !!nx && diffDays(today(), nx) <= 0; }
+function spentOn(day) { return sum(all('expenses').filter(e => e.day === day && !e.charge), e => e.a); }
+function budgetCalc() {
+  const d = today();
+  const evening = sum(all('deposits').filter(x => x.day === d && x.kind === 'evening'), x => x.a);
+  const base = balance() + spentOn(d) + evening;
+  const c = cRest(), e = eRest(d), n = daysLeft();
+  const avail = base - c - e;
+  return { base, c, e, n, avail, b: floor50(avail / n) };
+}
+function budgetToday() {
+  const cl = allCloses()[today()];
+  return cl ? cl.b : budgetCalc().b;
+}
+function tomorrowBudget() {
+  const n = Math.max(1, daysLeft() - 1);
+  const avail = balance() - cRest() - eRest(null);
+  return floor50(avail / n);
+}
+function goalStats() {
+  const g = goal();
+  if (!g) return null;
+  const v = S.profile.brickValue || 200;
+  const p = sum(all('deposits').filter(d => d.goal === g.id), d => d.a);
+  const pct = g.target > 0 ? Math.min(100, Math.floor(p / g.target * 100)) : 0;
+  const t = today();
+  const deps = all('deposits').filter(d => d.goal === g.id);
+  const firstDay = deps.length ? deps.map(d => d.day).sort()[0] : null;
+  const span = firstDay ? Math.min(14, diffDays(firstDay, t) + 1) : 0;
+  const recent = span >= 7 ? sum(deps.filter(d => d.a > 0 && diffDays(d.day, t) < span && diffDays(d.day, t) >= 0), d => d.a) / span : 0;
+  const left = Math.max(0, g.target - p);
+  const eta = recent > 0 && left > 0 ? addDays(t, Math.ceil(left / recent)) : null;
+  const exact = g.target > 0 ? Math.max(0, Math.min(100, p / g.target * 100)) : 0;
+  return { g, p, pct, exact, bricks: Math.floor(Math.max(0, p) / v), left, eta, v, waiting: !!firstDay && span < 7 };
+}
+function streakInfo() {
+  const closes = allCloses();
+  const t = today();
+  const first = S.profile.createdDay || t;
+  let d = closes[t] ? t : addDays(t, -1);
+  let count = 0; const jokers = {};
+  while (d >= first) {
+    if (closes[d]) count++;
+    else {
+      const w = weekStart(d);
+      const earlier = Object.keys(closes).some(k => k < d);
+      if (!jokers[w] && earlier) jokers[w] = d;
+      else break;
+    }
+    d = addDays(d, -1);
+  }
+  const record = Math.max(S.profile.record || 0, count);
+  return { count, record, jokers };
+}
+function jokerUsedThisWeek() {
+  const info = streakInfo(); const w = weekStart(today());
+  return !!info.jokers[w];
+}
+function minutesOf(t) { const d = new Date(t); return d.getHours() * 60 + d.getMinutes(); }
+function isWeekend(t) { const g = new Date(t).getDay(); return g === 0 || g === 6; }
+function suggestion() {
+  const now = new Date(); const nowM = minutesOf(now); const we = isWeekend(now);
+  const t = today(); const since = addDays(t, -30);
+  const inSlot = e => Math.abs(minutesOf(e.t) - nowM) <= 45 && isWeekend(e.t) === we;
+  const exps = all('expenses').filter(e => !e.charge && e.day >= since && e.day < t && inSlot(e));
+  if (exps.length < 3) return null;
+  const groups = {};
+  exps.forEach(e => { const k = e.c + '|' + e.a; groups[k] = (groups[k] || 0) + 1; });
+  let best = null;
+  for (const k in groups) if (!best || groups[k] > best.n) best = { k, n: groups[k] };
+  if (!best || best.n < 3 || best.n / exps.length < 0.6) return null;
+  const [c, a] = best.k.split('|');
+  const already = all('expenses').some(e => e.day === t && e.c === c && e.a === Number(a) && inSlot(e));
+  if (already) return null;
+  return { c, a: Number(a), n: best.n };
+}
+function shortcuts() {
+  const since = addDays(today(), -30);
+  const groups = {};
+  all('expenses').filter(e => !e.charge && e.day >= since).forEach(e => { const k = e.c + '|' + e.a; groups[k] = (groups[k] || 0) + 1; });
+  const list = Object.keys(groups).filter(k => groups[k] >= 2).sort((a, b) => groups[b] - groups[a]).map(k => { const [c, a] = k.split('|'); return { c, a: Number(a) }; });
+  for (const d of DEFAULT_SHORTCUTS) {
+    if (list.length >= 6) break;
+    if (!list.some(x => x.c === d.c && x.a === d.a)) list.push(d);
+  }
+  return list.slice(0, 6);
+}
+
+/* ---------- Actions ---------- */
+function addExpense({ a, c, note, charge, src, ms, yesterday }) {
+  const now = new Date();
+  let day = today(), t = now.toISOString();
+  if (yesterday) { day = addDays(today(), -1); const d = parseDay(day); d.setHours(20, 0, 0, 0); t = d.toISOString(); }
+  const k = mk(day);
+  month(k).expenses.push({ id: uid(), a, c, day, t, note: note || '', charge: charge || null, src: src || 'keypad', ms: ms || null });
+  saveMonth(k);
+}
+function addIncome({ a, src, next }) {
+  const d = today(), k = mk(d);
+  month(k).incomes.push({ id: uid(), a, src, day: d, t: new Date().toISOString() });
+  saveMonth(k);
+  const p = S.profile;
+  const resets = p.mode === 'irregulier' || src === 'salaire';
+  if (resets) {
+    p.periodStart = d;
+    if (p.mode !== 'irregulier' && src === 'salaire' && p.payDay) p.nextIncome = nextPayDate(p.payDay, d);
+    if (next !== undefined) p.nextIncome = next || null;
+    saveProfile();
+  }
+  return resets;
+}
+function deposit(a, kind) {
+  const g = goal(); if (!g || !a) return;
+  const d = today(), k = mk(d);
+  month(k).deposits.push({ id: uid(), a, kind, goal: g.id, day: d, t: new Date().toISOString() });
+  saveMonth(k);
+}
+function closeToday() {
+  const d = today(), k = mk(d);
+  if (allCloses()[d]) return allCloses()[d];
+  const b = budgetCalc().b, s = spentOn(d), r = b - s;
+  const g = goal();
+  const prevBricks = goalStats() ? goalStats().bricks : 0;
+  if (r > 0 && g) month(k).deposits.push({ id: uid(), a: r, kind: 'evening', goal: g.id, day: d, t: new Date().toISOString() });
+  month(k).closes[d] = { b, s, r, t: new Date().toISOString() };
+  saveMonth(k);
+  const st = streakInfo();
+  if (st.count > (S.profile.record || 0)) { S.profile.record = st.count; saveProfile(); }
+  const nowBricks = goalStats() ? goalStats().bricks : 0;
+  return { b, s, r, newBricks: Math.max(0, nowBricks - prevBricks) };
+}
+function adjustBalance(real) {
+  const diff = real - balance(); if (!diff) return;
+  const d = today(), k = mk(d);
+  month(k).adjustments.push({ id: uid(), a: diff, day: d, t: new Date().toISOString(), reason: 'Recalage' });
+  saveMonth(k);
+}
+function findTx(kind, id) {
+  for (const k in S.months) { const arr = S.months[k][kind] || []; const i = arr.findIndex(x => x.id === id); if (i >= 0) return { k, arr, i, x: arr[i] }; }
+  return null;
+}
+
+/* ---------- Icônes (SVG en ligne) ---------- */
+const I = {
+  flame: c => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${c || 'var(--flame)'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.6 1.2 2.5 2.2 2.5C11 8 11 5.5 12 3z"/></svg>`,
+  plus: (c, s) => `<svg width="${s || 22}" height="${s || 22}" viewBox="0 0 24 24" fill="none" stroke="${c || 'currentColor'}" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>`,
+  close: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
+  fwd: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>`,
+  back: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>`,
+  home: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>`,
+  wall: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9.3h18M3 14.6h18M9 4v5.3M15 9.3v5.3M9 14.6V20"/></svg>`,
+  chart: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>`,
+  user: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>`,
+  back2: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9.5l-5 5M12 9.5l5 5"/></svg>`,
+  clock: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>`,
+  moon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>`,
+  bulb: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>`,
+  coin: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1 1.3-1.8 3-1.8s3 .8 3 1.8-1.3 1.6-3 1.9-3 .9-3 1.9 1.3 1.8 3 1.8 3-.8 3-1.8"/></svg>`,
+  check: `<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`
+};
+
+/* ---------- Rendu : composants ---------- */
+function wallHTML(pct, rows, cols, h, animateFrom) {
+  const total = rows * cols;
+  const cells = x => x > 0 ? Math.min(total, Math.max(1, Math.round(x / 100 * total))) : 0;
+  const filled = cells(pct);
+  const from = animateFrom == null ? filled : Math.min(filled, cells(animateFrom));
+  let html = '<span class="wall" aria-hidden="true">', ni = 0;
+  for (let r = 0; r < rows; r++) {
+    const fromBottom = rows - 1 - r; const start = fromBottom * cols;
+    const offset = r % 2 === 0;
+    html += `<span class="r" style="height:${h}px">`;
+    const cell = (i, half) => {
+      const f = i < filled; const isNew = f && i >= from;
+      const cls = 'b' + (half ? ' h' : '') + (f ? ((i * 7 + r * 3) % 5 === 0 ? ' f2' : ' f') : '') + (isNew ? ' new' : '');
+      const style = isNew ? ` style="--i:${ni++}"` : '';
+      return `<span class="${cls}"${style}></span>`;
+    };
+    if (offset) {
+      html += cell(start, true);
+      for (let c = 1; c < cols; c++) html += cell(start + c, false);
+      html += cell(start + cols - 1, true);
+    } else {
+      for (let c = 0; c < cols; c++) html += cell(start + c, false);
+    }
+    html += '</span>';
+  }
+  return html + '</span>';
+}
+function expenseRow(e, withDate) {
+  const cat = CAT[e.c] || CAT.autre;
+  const charge = e.charge ? (S.profile.charges || []).find(c => c.id === e.charge) : null;
+  const label = charge ? charge.name : (e.note || cat.n);
+  const meta = (withDate ? '' : hhmm(e.t) + ' · ') + (charge ? 'Charge fixe' : cat.n) + (e.src === 'suggestion' ? ' · suggestion' : '');
+  return `<button class="item" data-act="edit-exp" data-id="${e.id}">
+    <span class="tile">${esc((charge ? charge.name : cat.n).charAt(0))}</span>
+    <span class="grow col" style="gap:1px"><span class="ellipsis" style="font-weight:600">${esc(label)}</span><span class="xs muted">${esc(meta)}</span></span>
+    <span style="font-weight:600">${F(e.a)}</span></button>`;
+}
+function navHTML() {
+  const t = S.ui.tab;
+  const b = (id, label, icon) => `<button data-act="tab" data-tab="${id}" ${t === id ? 'aria-current="page"' : ''}>${icon}<span>${label}</span></button>`;
+  return `<nav class="nav" aria-label="Navigation principale"><div class="nav-in">${b('home', 'Aujourd’hui', I.home)}${b('goal', 'Chantier', I.wall)}${b('stats', 'Bilan', I.chart)}${b('profile', 'Profil', I.user)}</div></nav>`;
+}
+
+/* ---------- Écran : Aujourd'hui ---------- */
+function viewHome() {
+  const p = S.profile, d = today();
+  const hour = new Date().getHours();
+  const hello = hour >= 18 || hour < 4 ? 'Bonsoir' : 'Bonjour';
+  const closed = allCloses()[d];
+  const b = budgetToday(), spent = spentOn(d), left = b - spent;
+  const st = streakInfo();
+  const gs = goalStats();
+  const todays = all('expenses').filter(e => e.day === d).sort((x, y) => y.t.localeCompare(x.t));
+  const pctSpent = b > 0 ? Math.min(100, Math.round(spent / b * 100)) : (spent > 0 ? 100 : 0);
+  let heroTop, heroAmount, heroBottom;
+  if (closed) {
+    heroTop = 'Journée fermée';
+    heroAmount = closed.r > 0 ? '+' + fmt(Math.floor(closed.r / (p.brickValue || 200))) : fmt(closed.s);
+    heroBottom = closed.r > 0 ? `briques posées ce soir. Demain : ${F(tomorrowBudget())}.` : `dépensés aujourd’hui. Demain, tu pourras dépenser ${F(tomorrowBudget())}.`;
+  } else if (left >= 0) {
+    heroTop = spent > 0 ? 'Il te reste aujourd’hui' : 'Aujourd’hui, tu peux dépenser';
+    heroAmount = fmt(left); heroBottom = 'tranquille.';
+  } else {
+    heroTop = 'Grosse journée aujourd’hui';
+    heroAmount = '0'; heroBottom = `Tu as dépassé de ${F(-left)}. Pas grave : c’est réparti sur les jours suivants.`;
+  }
+  const showRitual = !closed && (hour >= 18 || hour < 4);
+  return `<main class="shell">
+    ${Store.note ? `<div class="warn">${esc(Store.note)}</div>` : ''}
+    <div class="between">
+      <div class="col" style="gap:2px"><span class="small muted" style="font-weight:500">${esc(longDate(d))}</span><h1 class="h1">${hello} ${esc(p.name)}</h1></div>
+      <span class="chip" role="img" aria-label="Série de ${st.count} jours">${I.flame()}<span>${st.count}</span><span class="xs muted" style="font-weight:500">jour${st.count > 1 ? 's' : ''}</span></span>
+    </div>
+    ${incomeOverdue() ? `<button class="banner soft" data-act="open-income">${I.coin}<span class="grow"><b>Ta rentrée d’argent est arrivée ?</b><br><span class="small muted">Note-la pour recalculer ton budget.</span></span></button>` : ''}
+    <button class="hero" data-act="explain" aria-label="Voir comment le budget du jour est calculé">
+      <span class="hero-bricks" aria-hidden="true">${'<span></span>'.repeat(8)}</span>
+      <span style="font-size:15px;font-weight:500">${heroTop}</span>
+      <span class="row" style="align-items:baseline;gap:8px"><span class="amount">${heroAmount}</span>${closed && closed.r > 0 ? '' : '<span class="unit">F</span>'}</span>
+      <span style="font-size:15px;font-weight:500">${heroBottom}</span>
+      ${closed ? '' : `<span class="col" style="gap:8px;margin-top:12px">
+        <span class="bar"><i style="width:${pctSpent}%"></i></span>
+        <span class="between small"><span>${F(spent)} dépensés</span><span>sur ${F(b)}</span></span></span>`}
+    </button>
+    ${showRitual ? `<button class="banner night" data-act="open-ritual">${I.moon}<span class="grow"><b>On ferme la journée ?</b><br><span class="small" style="color:var(--nightMuted)">10 secondes, et tes briques sont posées.</span></span></button>` : ''}
+    ${gs ? `<button class="card col" data-act="tab" data-tab="goal" style="gap:12px;text-align:left;width:100%">
+      <span class="between" style="align-items:baseline"><span class="col" style="gap:2px"><span class="eyebrow">Mon chantier</span><span class="h2">${esc(gs.g.name)}</span></span>
+      <span class="display" style="font-size:28px;font-weight:800;color:var(--brick)">${gs.pct}&nbsp;%</span></span>
+      ${wallHTML(gs.exact, 5, 12, 11)}
+      <span class="small muted">${fmt(gs.bricks)} brique${gs.bricks > 1 ? 's' : ''} posée${gs.bricks > 1 ? 's' : ''} · ${F(gs.p)} sur ${F(gs.g.target)}</span>
+    </button>` : `<button class="card" data-act="new-goal" style="text-align:left;width:100%"><span class="h2">Choisis ton rêve</span><br><span class="small muted">Une moto, un terrain, un voyage… Chaque franc épargné deviendra une brique.</span></button>`}
+    <section class="col" style="gap:2px">
+      <div class="between list-head"><h2 class="h2">Aujourd’hui</h2><span class="small muted">${todays.length} dépense${todays.length > 1 ? 's' : ''}</span></div>
+      ${todays.length ? todays.map(e => expenseRow(e)).join('') : `<p class="small muted" style="margin:6px 0">Rien pour l’instant. Ta première dépense se note en 3 secondes.</p>`}
+    </section>
+    <div class="row" style="gap:10px">
+      <button class="btn btn-ghost" data-act="open-income" style="flex:1">${I.plus('currentColor', 18)} Revenu</button>
+      <button class="btn btn-ghost" data-act="open-ritual" style="flex:1">${I.moon} Rituel</button>
+    </div>
+  </main>
+  <button class="btn btn-dark fab" data-act="open-expense">${I.plus('#fff')} Ajouter une dépense</button>
+  ${navHTML()}`;
+}
+
+/* ---------- Écran : Chantier ---------- */
+function viewGoal() {
+  const gs = goalStats();
+  if (!gs) {
+    const done = S.profile.goal && S.profile.goal.done ? S.profile.goal : null;
+    return `<main class="shell">
+      <h1 class="h1">Mon chantier</h1>
+      ${done ? `<div class="card col" style="gap:8px;text-align:center;align-items:center"><span class="eyebrow">Rêve accompli</span><span class="h2">${esc(done.name)}</span><span class="small muted">${F(done.target)} réunis, brique par brique. Bravo.</span></div>` : ''}
+      <div class="card col" style="gap:10px"><span class="h2">${done ? 'Prochain rêve ?' : 'Quel est ton rêve ?'}</span><span class="small muted">Donne-lui un nom et un montant. Chaque soir, ce qui reste de ton budget du jour deviendra des briques.</span>
+      <button class="btn btn-brick" data-act="new-goal">Commencer un chantier</button></div>
+    </main>${navHTML()}`;
+  }
+  const g = gs.g;
+  const steps = [['Fondations', 25], ['Murs', 50], ['Toit', 75], ['Clés', 100]];
+  let animFrom = null;
+  const seen = S.profile.seenPct == null ? gs.exact : S.profile.seenPct;
+  if (seen < gs.exact) animFrom = seen;
+  if (Math.abs((S.profile.seenPct || 0) - gs.exact) > 1e-9) { S.profile.seenPct = gs.exact; saveProfile(); }
+  const nextStep = steps.find(s => gs.pct < s[1]);
+  const toNext = nextStep ? Math.max(0, Math.ceil(g.target * nextStep[1] / 100) - gs.p) : 0;
+  const fam = sum(all('expenses').filter(e => e.c === 'transport' && e.day >= addDays(today(), -30)), e => e.a);
+  return `<main class="shell">
+    <div class="between"><span class="eyebrow">Mon chantier</span><button class="link" data-act="edit-goal">Modifier</button></div>
+    <div class="between" style="align-items:flex-end">
+      <div class="col" style="gap:2px;min-width:0"><h1 class="display ellipsis" style="font-size:34px;font-weight:800;margin:0;line-height:1.05">${esc(g.name)}</h1><span class="small muted">${F(gs.p)} sur ${F(g.target)}</span></div>
+      <span class="display" style="font-size:44px;font-weight:800;color:var(--brick);line-height:1">${gs.pct}&nbsp;%</span>
+    </div>
+    <div class="card col" style="gap:6px;padding:18px" role="img" aria-label="Mur rempli à ${gs.pct} pour cent">
+      <svg width="100%" height="44" viewBox="0 0 300 44" preserveAspectRatio="none" aria-hidden="true"><path d="M8 42L150 4l142 38" fill="none" stroke="${gs.pct >= 75 ? 'var(--brick)' : '#D9C7B6'}" stroke-width="2.5" ${gs.pct >= 75 ? '' : 'stroke-dasharray="7 6"'} stroke-linecap="round" stroke-linejoin="round"/></svg>
+      ${wallHTML(gs.exact, 9, 8, 18, animFrom)}
+      <div style="height:6px;background:var(--brickDark);border-radius:2px;margin-top:2px"></div>
+      <span class="xs muted" style="text-align:center;padding-top:4px">${fmt(gs.bricks)} brique${gs.bricks > 1 ? 's' : ''} posée${gs.bricks > 1 ? 's' : ''} · 1 brique = ${F(gs.v)}</span>
+    </div>
+    <div class="steps">${steps.map(s => `<div class="s ${gs.pct >= s[1] ? 'done' : (nextStep && nextStep[0] === s[0] ? 'now' : '')}"><i></i><span class="xs" style="font-weight:700">${s[0]}</span><span class="xs muted">${gs.pct >= s[1] ? 'Fait' : 'à ' + s[1] + ' %'}</span></div>`).join('')}</div>
+    <div class="row" style="gap:10px;align-items:stretch">
+      <div class="stat"><span class="xs muted" style="font-weight:600">${nextStep ? 'Pour atteindre « ' + nextStep[0] + ' »' : 'Objectif'}</span><b>${nextStep ? F(toNext) : 'Atteint !'}</b></div>
+      <div class="stat"><span class="xs muted" style="font-weight:600">Clés en main vers</span><b>${gs.left <= 0 ? 'Maintenant' : gs.eta ? roughDate(gs.eta) : '—'}</b></div>
+    </div>
+    ${!gs.eta && gs.left > 0 ? `<p class="small muted" style="margin:0">${gs.waiting ? 'Ta date apparaîtra après une semaine de briques.' : 'Pose ta première brique pour voir ta date.'}</p>` : ''}
+    <div class="row" style="gap:10px">
+      <button class="btn btn-brick" data-act="open-deposit" style="flex:1">${I.plus('#fff', 18)} Poser des briques</button>
+      <button class="btn btn-ghost" data-act="open-withdraw">Retirer</button>
+    </div>
+    ${gs.left <= 0 ? `<button class="btn btn-dark btn-block" data-act="finish-goal">Rêve accompli : en commencer un autre</button>` : ''}
+    ${fam > 0 ? `<div class="insight"><span style="width:44px;height:44px;border-radius:14px;background:#2E2925;display:flex;align-items:center;justify-content:center;flex-shrink:0">${I.bulb}</span>
+      <span class="col" style="gap:3px"><span style="font-weight:600;line-height:1.35">Ton transport sur 30 jours : ${F(fam)}, soit <span style="color:var(--gold)">${fmt(Math.floor(fam / gs.v))} briques</span>.</span><span class="xs" style="color:#C9C1B8">Chaque trajet évité, c’est ${fmt(Math.max(1, Math.round(500 / gs.v)))} brique${Math.round(500 / gs.v) > 1 ? 's' : ''} de plus pour ${esc(g.name)}.</span></span></div>` : ''}
+  </main>${navHTML()}`;
+}
+
+/* ---------- Écran : Bilan ---------- */
+function viewStats() {
+  const keys = Object.keys(S.months).concat([mk(today())]).filter((v, i, a) => a.indexOf(v) === i).sort();
+  const cur = S.ui.month && keys.includes(S.ui.month) ? S.ui.month : mk(today());
+  const m = month(cur);
+  const varExp = m.expenses.filter(e => !e.charge);
+  const totalVar = sum(varExp, e => e.a);
+  const totalCharges = sum(m.expenses.filter(e => e.charge), e => e.a);
+  const totalInc = sum(m.incomes, e => e.a);
+  const posedM = sum(m.deposits, e => e.a);
+  const byCat = {};
+  varExp.forEach(e => { byCat[e.c] = (byCat[e.c] || 0) + e.a; });
+  const cats = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]);
+  const max = cats.length ? byCat[cats[0]] : 1;
+  const days = {};
+  m.expenses.forEach(e => { (days[e.day] = days[e.day] || []).push(e); });
+  const dayKeys = Object.keys(days).sort().reverse();
+  const i = keys.indexOf(cur);
+  const closesN = Object.keys(m.closes || {}).length;
+  return `<main class="shell">
+    <div class="between">
+      <button class="iconbtn" data-act="month" data-m="${i > 0 ? keys[i - 1] : ''}" ${i > 0 ? '' : 'disabled style="opacity:.35"'} aria-label="Mois précédent">${I.back}</button>
+      <h1 class="h1" style="font-size:22px">${monthLabel(cur)}</h1>
+      <button class="iconbtn" data-act="month" data-m="${i < keys.length - 1 ? keys[i + 1] : ''}" ${i < keys.length - 1 ? '' : 'disabled style="opacity:.35"'} aria-label="Mois suivant">${I.fwd}</button>
+    </div>
+    <div class="row" style="gap:10px;align-items:stretch">
+      <div class="stat"><span class="xs muted" style="font-weight:600">Dépenses du quotidien</span><b>${F(totalVar)}</b></div>
+      <div class="stat"><span class="xs muted" style="font-weight:600">Briques posées</span><b>${F(posedM)}</b></div>
+    </div>
+    <div class="row" style="gap:10px;align-items:stretch">
+      <div class="stat"><span class="xs muted" style="font-weight:600">Charges fixes payées</span><b>${F(totalCharges)}</b></div>
+      <div class="stat"><span class="xs muted" style="font-weight:600">Revenus notés</span><b>${F(totalInc)}</b></div>
+    </div>
+    <p class="small muted" style="margin:0">${closesN} journée${closesN > 1 ? 's' : ''} fermée${closesN > 1 ? 's' : ''} ce mois-ci.</p>
+    ${cats.length ? `<section class="card col" style="gap:12px"><h2 class="h2" style="font-size:17px">Par catégorie</h2>
+      ${cats.map(c => `<div class="col" style="gap:5px"><div class="between small"><span style="font-weight:600">${esc((CAT[c] || CAT.autre).n)}</span><span>${F(byCat[c])} · ${Math.round(byCat[c] / totalVar * 100)} %</span></div><div class="catbar"><i style="width:${Math.max(3, Math.round(byCat[c] / max * 100))}%"></i></div></div>`).join('')}
+    </section>` : ''}
+    ${m.incomes.length ? `<section class="col" style="gap:2px"><h2 class="h2 list-head" style="font-size:17px">Revenus</h2>
+      ${m.incomes.slice().sort((a, b) => b.t.localeCompare(a.t)).map(x => `<button class="item" data-act="edit-inc" data-id="${x.id}"><span class="tile" style="background:#E3EFE6;color:#245A33">+</span><span class="grow col" style="gap:1px"><span style="font-weight:600">${esc((INCOME_SRC.find(s => s.id === x.src) || INCOME_SRC[4]).n)}</span><span class="xs muted">${esc(shortDate(x.day))}</span></span><span style="font-weight:600">+${F(x.a)}</span></button>`).join('')}
+    </section>` : ''}
+    <section class="col" style="gap:2px">
+      <h2 class="h2 list-head" style="font-size:17px">Dépenses</h2>
+      ${dayKeys.length ? dayKeys.map(dk => `<div class="between small muted" style="padding-top:10px;font-weight:600"><span>${esc(longDate(dk))}</span><span>${F(sum(days[dk].filter(e => !e.charge), e => e.a))}</span></div>` + days[dk].sort((a, b) => b.t.localeCompare(a.t)).map(e => expenseRow(e)).join('')).join('') : `<p class="small muted">Aucune dépense ce mois-ci.</p>`}
+    </section>
+  </main>${navHTML()}`;
+}
+
+/* ---------- Écran : Profil ---------- */
+function viewProfile() {
+  const p = S.profile;
+  const modeLabel = { salaire: 'Salaire chaque mois', irregulier: 'Revenus irréguliers', mixte: 'Salaire + revenus en plus' }[p.mode];
+  const bc = budgetCalc();
+  return `<main class="shell">
+    <h1 class="h1">Profil</h1>
+    <section class="card col" style="gap:10px">
+      <div class="between"><span class="col" style="gap:2px"><span class="xs muted" style="font-weight:600">Prénom</span><b>${esc(p.name)}</b></span><button class="link" data-act="edit-name">Modifier</button></div>
+      <hr class="sep">
+      <div class="between"><span class="col" style="gap:2px"><span class="xs muted" style="font-weight:600">Mes revenus</span><b>${modeLabel}</b></span><button class="link" data-act="edit-mode">Modifier</button></div>
+      <hr class="sep">
+      <div class="between"><span class="col" style="gap:2px"><span class="xs muted" style="font-weight:600">Prochaine rentrée prévue</span><b>${p.nextIncome ? esc(longDate(p.nextIncome)) : 'Je ne sais pas (30 jours par défaut)'}</b></span><button class="link" data-act="edit-next">Modifier</button></div>
+    </section>
+    <section class="card col" style="gap:8px">
+      <div class="between"><h2 class="h2" style="font-size:17px">Charges fixes</h2><button class="link" data-act="add-charge">${I.plus('currentColor', 16)} Ajouter</button></div>
+      <p class="xs muted" style="margin:0">Loyer, scolarité, tontine… Elles sont mises de côté avant de calculer ton budget du jour.</p>
+      ${(p.charges || []).length ? p.charges.map(c => `<div class="between" style="padding:6px 0"><span class="col" style="gap:1px"><span style="font-weight:600">${esc(c.name)}</span><span class="xs muted">${F(c.amount)} · ${chargePaid(c) ? 'payée pour cette période' : 'à payer'}</span></span><button class="link" data-act="del-charge" data-id="${c.id}" aria-label="Supprimer ${esc(c.name)}">Retirer</button></div>`).join('') : '<p class="small muted" style="margin:4px 0">Aucune charge fixe.</p>'}
+    </section>
+    <section class="card col" style="gap:10px">
+      <h2 class="h2" style="font-size:17px">Mon argent</h2>
+      <div class="between"><span class="col" style="gap:2px"><span class="xs muted" style="font-weight:600">Argent disponible selon l’app</span><b>${F(balance())}</b></span><button class="link" data-act="adjust">Recaler</button></div>
+      <hr class="sep">
+      <div class="between"><span class="col" style="gap:2px"><span class="xs muted" style="font-weight:600">Valeur d’une brique</span><b>${F(p.brickValue || 200)}</b></span><button class="link" data-act="edit-brick">Modifier</button></div>
+      <hr class="sep">
+      <button class="link" data-act="explain" style="align-self:flex-start">Comment est calculé mon budget du jour ?</button>
+    </section>
+    <section class="card col" style="gap:10px">
+      <h2 class="h2" style="font-size:17px">Sauvegarde</h2>
+      <p class="small muted" style="margin:0">${Store.mode === 'cloud' ? 'Tes données sont sauvegardées dans ton espace Claude, visibles par toi seul. Tu les retrouves sur tous tes appareils.' : 'Tes données sont sur cet appareil uniquement. Fais une copie de sauvegarde de temps en temps.'}</p>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <button class="btn btn-ghost" data-act="export" style="flex:1">Exporter</button>
+        <button class="btn btn-ghost" data-act="import" style="flex:1">Importer</button>
+      </div>
+      ${!IS_CLAUDE ? `<button class="btn btn-ghost" data-act="ics">Ajouter un rappel quotidien à 21 h (agenda)</button>` : ''}
+    </section>
+    <section class="col" style="gap:8px;padding-bottom:12px">
+      <button class="link" data-act="reset" style="color:#9A2A14">Tout effacer et recommencer</button>
+      <p class="xs muted" style="margin:0">Brique · budget du jour actuel ${F(bc.b)} · ${Store.mode === 'cloud' ? 'sauvegarde Claude' : 'stockage local'}</p>
+    </section>
+  </main>${navHTML()}`;
+}
+
+/* ---------- Feuilles (plein écran) ---------- */
+function padHTML() {
+  return `<div class="pad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '000', '0', 'back'].map(k => `<button type="button" data-act="key" data-k="${k}" aria-label="${k === 'back' ? 'Effacer' : k}">${k === 'back' ? I.back2 : k}</button>`).join('')}</div>`;
+}
+function sheetExpense() {
+  const f = S.ui.form; const amt = Number(f.amount || 0);
+  const sg = f.suggestion; const scs = shortcuts();
+  const unpaid = (S.profile.charges || []).filter(c => !chargePaid(c));
+  const ready = amt > 0 && (f.c || f.charge);
+  const left = budgetToday() - spentOn(today());
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Ajouter une dépense">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button>
+      <span class="small muted" style="font-weight:500">Reste aujourd’hui : <b style="color:var(--ink)">${F(Math.max(0, left))}</b></span></div>
+    <div class="col" style="align-items:center;gap:6px;padding-top:4px">
+      <span class="row" style="align-items:baseline;gap:8px"><span class="amountbig" aria-live="polite">${fmt(amt)}</span><span class="display" style="font-size:28px;font-weight:700;color:var(--muted)">F</span></span>
+      <span class="small muted" style="font-weight:500">${f.charge ? 'Charge fixe : ' + esc((S.profile.charges.find(c => c.id === f.charge) || {}).name) : f.c ? 'Catégorie : ' + esc(CAT[f.c].n) : 'Choisis une catégorie ou un raccourci'}</span>
+    </div>
+    ${sg ? `<button class="sugg" data-act="use-sugg">${'<span class="tile" style="width:36px;height:36px">' + I.clock + '</span>'}<span class="grow col" style="gap:1px"><span style="font-weight:600">${esc(CAT[sg.c].n)}, ${F(sg.a)} ?</span><span class="xs muted">Comme souvent à cette heure-ci</span></span><span class="small" style="font-weight:700;color:var(--brick)">Oui</span></button>` : ''}
+    <div class="col" style="gap:6px"><span class="xs muted" style="font-weight:600">Raccourcis</span>
+      <div class="chips scroll">${scs.map((s, i) => `<button type="button" class="pill" data-act="shortcut" data-i="${i}" aria-pressed="${f.c === s.c && amt === s.a && !f.charge}">${esc(CAT[s.c].n)}<small>${F(s.a)}</small></button>`).join('')}</div></div>
+    <div class="col" style="gap:6px"><span class="xs muted" style="font-weight:600">Catégorie</span>
+      <div class="chips scroll">${CATS.map(c => `<button type="button" class="pill" data-act="cat" data-c="${c.id}" aria-pressed="${f.c === c.id && !f.charge}">${esc(c.n)}</button>`).join('')}
+      ${unpaid.length ? `<button type="button" class="pill" data-act="charge-mode" aria-pressed="${!!f.chargeMode}">Charge fixe</button>` : ''}</div></div>
+    ${f.chargeMode ? `<div class="chips scroll">${unpaid.map(c => `<button type="button" class="pill" data-act="pick-charge" data-id="${c.id}" aria-pressed="${f.charge === c.id}">${esc(c.name)}<small>${F(c.amount)}</small></button>`).join('')}</div>` : ''}
+    <div class="row" style="gap:8px">
+      <button type="button" class="pill" data-act="toggle-yesterday" aria-pressed="${!!f.yesterday}">C’était hier</button>
+      <input class="input" style="min-height:44px" id="note" placeholder="Note (facultatif)" value="${esc(f.note || '')}" maxlength="60" aria-label="Note">
+    </div>
+    ${padHTML()}
+    <button class="btn ${ready ? 'btn-dark' : ''} btn-block" data-act="save-expense" ${ready ? '' : 'disabled'}>${ready ? 'Enregistrer ' + F(amt) : 'Enregistrer'}</button>
+  </div>`;
+}
+function sheetIncome() {
+  const f = S.ui.form; const amt = Number(f.amount || 0); const p = S.profile;
+  if (f.done) {
+    const e = eRest(null); const g = goal();
+    return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Revenu enregistré">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center">
+        <span style="width:92px;height:92px;border-radius:30px;background:var(--brick);display:flex;align-items:center;justify-content:center">${I.check}</span>
+        <span class="display" style="font-size:30px;font-weight:800">+${F(f.saved)} notés</span>
+        <span style="color:#4A433C;max-width:300px;line-height:1.45">Ton budget du jour passe à <b style="color:var(--brick)">${F(budgetCalc().b)}</b>.</span>
+        ${g && e > 0 ? `<div class="card col" style="gap:10px;width:100%;text-align:left"><b>Paie ton rêve en premier</b><span class="small muted">Tu avais prévu ${F(g.per)} pour « ${esc(g.name)} » sur cette période. Il reste ${F(e)} à poser.</span>
+          <button class="btn btn-brick" data-act="income-deposit" data-a="${e}">Poser ${F(e)} maintenant</button></div>` : ''}
+        <button class="btn btn-dark btn-block" data-act="close-sheet">Terminé</button>
+      </div></div>`;
+  }
+  const showNext = p.mode === 'irregulier' || f.src === 'salaire';
+  const defaultNext = p.mode !== 'irregulier' && p.payDay ? nextPayDate(p.payDay, today()) : (p.nextIncome || '');
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Ajouter un revenu">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">Argent qui rentre</span></div>
+    <div class="col" style="align-items:center;gap:6px;padding-top:4px">
+      <span class="row" style="align-items:baseline;gap:8px"><span class="amountbig">${fmt(amt)}</span><span class="display" style="font-size:28px;font-weight:700;color:var(--muted)">F</span></span>
+    </div>
+    <div class="chips" style="justify-content:center">${INCOME_SRC.map(s => `<button type="button" class="pill" data-act="inc-src" data-s="${s.id}" aria-pressed="${f.src === s.id}">${s.n}</button>`).join('')}</div>
+    ${showNext ? `<div class="field"><label for="nextinc">Prochaine rentrée prévue (facultatif)</label><input class="input" type="date" id="nextinc" value="${esc(f.next != null ? f.next : defaultNext)}"></div>` : ''}
+    <div style="flex:1"></div>
+    ${padHTML()}
+    <button class="btn ${amt > 0 && f.src ? 'btn-dark' : ''} btn-block" data-act="save-income" ${amt > 0 && f.src ? '' : 'disabled'}>Enregistrer</button>
+  </div>`;
+}
+function sheetAmount(kind) {
+  const f = S.ui.form; const amt = Number(f.amount || 0); const gs = goalStats();
+  const title = kind === 'deposit' ? 'Poser des briques' : kind === 'withdraw' ? 'Retirer du chantier' : 'Mon argent réel';
+  const help = kind === 'deposit' ? `Cet argent est mis de côté pour « ${esc(gs ? gs.g.name : '')} ». ${amt ? '= ' + fmt(Math.floor(amt / (S.profile.brickValue || 200))) + ' briques' : ''}`
+    : kind === 'withdraw' ? 'Ça arrive. Le chantier t’attendra, et l’argent revient dans ton budget.'
+    : `Compte tes espèces et ton mobile money. L’app pense que tu as ${F(balance())}.`;
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="${title}">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">${title}</span></div>
+    <div class="col" style="align-items:center;gap:8px;padding-top:4px;text-align:center">
+      <span class="row" style="align-items:baseline;gap:8px"><span class="amountbig">${fmt(amt)}</span><span class="display" style="font-size:28px;font-weight:700;color:var(--muted)">F</span></span>
+      <span class="small muted" style="max-width:320px">${help}</span>
+    </div>
+    <div style="flex:1"></div>
+    ${padHTML()}
+    <button class="btn ${amt > 0 || kind === 'adjust' ? 'btn-dark' : ''} btn-block" data-act="save-amount" data-kind="${kind}" ${amt > 0 || kind === 'adjust' ? '' : 'disabled'}>Valider</button>
+  </div>`;
+}
+function sheetRitual() {
+  const f = S.ui.form; const d = today(); const closed = allCloses()[d];
+  const hour = new Date().getHours(); const allowed = hour >= 18 || hour < 4;
+  const st = streakInfo();
+  const ws = weekStart(d);
+  const dots = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((l, i) => {
+    const day = addDays(ws, i); const cl = allCloses()[day];
+    const cls = cl ? 'on' : st.jokers[ws] === day ? 'jk' : '';
+    return `<div><i class="${cls} ${day === d ? 'today' : ''}"></i>${l}</div>`;
+  }).join('');
+  const header = `<div class="between"><div class="col" style="gap:2px"><span class="small muted" style="font-weight:500">${esc(longDate(d))} · ${hhmm(new Date())}</span><span class="display" style="font-size:26px;font-weight:700">Bonsoir ${esc(S.profile.name)}</span></div>
+    <span class="chip" style="background:var(--night2);border-color:var(--night2);color:#FAF5EE">${I.flame('var(--gold)')}<span>${st.count}</span></span></div>`;
+  if (closed && f.result) {
+    const r = f.result;
+    const nb = r.newBricks;
+    const g = goal();
+    return `<div class="sheet dark" role="dialog" aria-modal="true" aria-label="Journée fermée">${header}
+      ${r.r > 0 ? `<div class="col" style="align-items:center;text-align:center;gap:12px;padding-top:8px">
+          <span class="eyebrow" style="color:var(--nightMuted)">Ce soir tu poses</span>
+          <span class="big-plus">+${fmt(nb)}</span><span class="display" style="font-size:26px;font-weight:700">brique${nb > 1 ? 's' : ''}</span>
+          <div class="mini-bricks" aria-hidden="true">${Array.from({ length: Math.min(nb, 15) }, (_, i) => `<span class="new" style="--i:${i}"></span>`).join('')}</div>
+          <span class="muted" style="max-width:300px;line-height:1.5">${F(r.r)} mis de côté${g ? ' pour <b style="color:#FAF5EE">' + esc(g.name) + '</b>' : ''}.${goalStats() ? (goalStats().pct === 0 ? ' Ton chantier démarre !' : ' Tu es à ' + goalStats().pct + ' %.') : ''}</span></div>`
+        : `<div class="col" style="gap:12px;padding-top:8px">
+          <span class="display" style="font-size:34px;font-weight:800;line-height:1.08">${r.r === 0 ? 'Pile dans le budget.' : 'Grosse journée,<br>et c’est normal.'}</span>
+          <span class="muted" style="line-height:1.5">${r.r === 0 ? 'Rien à poser ce soir, mais rien à rattraper non plus.' : 'Ton chantier ne bouge pas. Les ' + F(-r.r) + ' de plus sont répartis sur les jours qui viennent.'}</span>
+          <div class="nightcard col" style="gap:4px"><span class="small muted">Demain, tu pourras dépenser</span><span class="display" style="font-size:38px;font-weight:800;color:var(--gold)">${F(tomorrowBudget())}</span></div></div>`}
+      <div class="nightcard col" style="gap:12px">
+        <div class="between"><b>Série : ${st.count} jour${st.count > 1 ? 's' : ''}</b><span class="xs muted">Record : ${st.record}</span></div>
+        <div class="dots">${dots}</div>
+        <span class="xs muted">Ta série compte les jours où tu fermes ta journée, pas les jours parfaits.${jokerUsedThisWeek() ? '' : ' 1 joker par semaine protège ta série si tu oublies un soir.'}</span>
+      </div>
+      ${new Date().getDay() === 0 ? `<button class="banner" style="background:var(--night2);color:#FAF5EE" data-act="adjust">${I.coin}<span class="grow"><b>C’est dimanche : on vérifie ?</b><br><span class="small muted">Ton argent réel correspond à l’app ?</span></span></button>` : ''}
+      <div style="flex:1"></div>
+      <button class="btn btn-light btn-block" data-act="close-sheet">Bonne nuit</button>
+    </div>`;
+  }
+  const todays = all('expenses').filter(e => e.day === d).sort((x, y) => x.t.localeCompare(y.t));
+  const b = budgetToday(); const s = spentOn(d);
+  return `<div class="sheet dark" role="dialog" aria-modal="true" aria-label="Rituel du soir">${header}
+    <span class="display" style="font-size:38px;font-weight:800;line-height:1.05">${closed ? 'Journée<br>déjà fermée' : 'On ferme<br>la journée ?'}</span>
+    <span class="muted" style="line-height:1.45">${closed ? 'Tu l’as fermée à ' + hhmm(closed.t) + '. Les dépenses ajoutées après seront réparties sur demain.' : 'Jette un œil à tes dépenses. Si tout y est, un tap et c’est fini.'}</span>
+    <div class="nightcard" style="padding:6px 16px">
+      ${todays.length ? todays.map(e => { const cat = CAT[e.c] || CAT.autre; const ch = e.charge ? (S.profile.charges || []).find(c => c.id === e.charge) : null; return `<div class="between" style="padding:10px 0;border-bottom:1px solid var(--night3)"><span class="col" style="gap:1px"><span style="font-weight:600">${esc(ch ? ch.name : (e.note || cat.n))}</span><span class="xs muted">${hhmm(e.t)}${ch ? ' · charge fixe' : ''}</span></span><span style="font-weight:600">${F(e.a)}</span></div>`; }).join('') : '<p class="muted" style="margin:12px 0">Aucune dépense aujourd’hui. Vraiment ?</p>'}
+      <div class="between" style="padding:12px 0 8px"><span class="small muted">Total du jour</span><span class="display" style="font-size:20px;font-weight:800">${F(s)} <span class="small muted" style="font-weight:500">/ ${F(b)}</span></span></div>
+    </div>
+    <button class="link" style="color:var(--gold)" data-act="open-expense">${I.plus('currentColor', 18)} J’ai oublié une dépense</button>
+    <div style="flex:1"></div>
+    ${closed ? `<button class="btn btn-light btn-block" data-act="close-sheet">Fermer</button>`
+      : allowed ? `<button class="btn btn-brick btn-block" data-act="do-close" style="font-size:17px;font-weight:700">Fermer la journée</button>`
+      : `<button class="btn btn-block" disabled>Disponible dès 18 h</button><button class="link" style="color:var(--nightMuted);align-self:center" data-act="close-sheet">Retour</button>`}
+  </div>`;
+}
+function sheetEditExpense() {
+  const f = S.ui.form; const t = findTx('expenses', f.id); if (!t) return '';
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Modifier la dépense">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">${esc(longDate(t.x.day))} · ${hhmm(t.x.t)}</span></div>
+    <div class="col" style="align-items:center;gap:6px"><span class="row" style="align-items:baseline;gap:8px"><span class="amountbig">${fmt(Number(f.amount || 0))}</span><span class="display" style="font-size:28px;font-weight:700;color:var(--muted)">F</span></span></div>
+    ${t.x.charge ? '' : `<div class="chips">${CATS.map(c => `<button type="button" class="pill" data-act="cat" data-c="${c.id}" aria-pressed="${f.c === c.id}">${esc(c.n)}</button>`).join('')}</div>`}
+    <input class="input" id="note" placeholder="Note (facultatif)" value="${esc(f.note || '')}" maxlength="60" aria-label="Note">
+    ${padHTML()}
+    <div class="row" style="gap:10px"><button class="btn btn-ghost" data-act="del-exp" style="color:#9A2A14">Supprimer</button>
+    <button class="btn btn-dark" style="flex:1" data-act="save-edit-exp" ${Number(f.amount) > 0 ? '' : 'disabled'}>Enregistrer</button></div>
+  </div>`;
+}
+function sheetGoalForm() {
+  const f = S.ui.form; const p = S.profile;
+  const perLabel = p.mode === 'irregulier' ? 'À mettre de côté à chaque rentrée d’argent' : 'À mettre de côté à chaque paie';
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Mon rêve">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">Mon rêve</span></div>
+    <h2 class="h1">${f.editing ? 'Modifier mon rêve' : 'Quel est ton rêve ?'}</h2>
+    <form class="col" style="gap:14px" data-form="goal">
+      <div class="field"><label for="g-name">Nom du rêve</label><input class="input" id="g-name" required maxlength="40" placeholder="Ma moto, un terrain, mon master…" value="${esc(f.name || '')}"></div>
+      <div class="field"><label for="g-target">Montant total (F)</label><input class="input" id="g-target" required inputmode="numeric" pattern="[0-9 ]*" placeholder="380000" value="${f.target || ''}"></div>
+      <div class="field"><label for="g-per">${perLabel} (F, facultatif)</label><input class="input" id="g-per" inputmode="numeric" pattern="[0-9 ]*" placeholder="20000" value="${f.per || ''}"><span class="xs muted">Cette somme est retirée de ton budget du jour tant qu’elle n’est pas posée.</span></div>
+      <button class="btn btn-brick btn-block" type="submit">${f.editing ? 'Enregistrer' : 'Lancer le chantier'}</button>
+    </form>
+  </div>`;
+}
+function sheetExplain() {
+  const c = budgetCalc(); const closed = allCloses()[today()];
+  const row = (l, v, strong) => `<div class="between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span ${strong ? 'style="font-weight:700"' : 'class="muted"'}>${l}</span><span style="font-weight:${strong ? 800 : 600}">${v}</span></div>`;
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Calcul du budget du jour">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">Comment c’est calculé</span></div>
+    <h2 class="h1">Ton budget du jour</h2>
+    <p class="muted" style="margin:0;line-height:1.5">L’argent que tu as, moins ce qui est déjà promis, divisé par les jours jusqu’à ta prochaine rentrée.</p>
+    <div class="card" style="padding:6px 18px">
+      ${row('Argent disponible ce matin', F(c.base))}
+      ${row('− Charges fixes à payer', F(c.c))}
+      ${row('− Part du rêve pas encore posée', F(c.e))}
+      ${row('= Libre jusqu’à la prochaine rentrée', F(c.avail), true)}
+      ${row('÷ Jours restants', c.n + (S.profile.nextIncome ? '' : ' (par défaut)'))}
+      ${row('= Budget du jour (arrondi à 50 F)', F(c.b), true)}
+    </div>
+    ${closed ? `<p class="small muted" style="margin:0">Journée fermée : le budget affiché reste celui du moment de la fermeture (${F(closed.b)}).</p>` : ''}
+    <p class="small muted" style="margin:0;line-height:1.5">Le soir, ce qui reste devient des briques. Si tu dépasses, rien n’est retiré du chantier : les jours suivants baissent un peu, en douceur.</p>
+    <div style="flex:1"></div>
+    <button class="btn btn-dark btn-block" data-act="close-sheet">Compris</button>
+  </div>`;
+}
+function sheetBackup(kind) {
+  const f = S.ui.form;
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Sauvegarde">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">${kind === 'export' ? 'Exporter' : 'Importer'}</span></div>
+    ${kind === 'export' ? `<p class="muted" style="margin:0;line-height:1.5">Voici toutes tes données. ${IS_CLAUDE ? 'Copie-les et garde-les dans une note ou envoie-les-toi sur WhatsApp.' : 'Télécharge le fichier ou copie le texte.'}</p>
+      <textarea class="input" readonly id="exportbox" aria-label="Données exportées">${esc(f.json)}</textarea>
+      <button class="btn btn-dark" data-act="copy-export">Copier</button>
+      ${IS_CLAUDE ? '' : '<button class="btn btn-ghost" data-act="download-export">Télécharger le fichier</button>'}`
+    : `<p class="muted" style="margin:0;line-height:1.5">Colle une sauvegarde Brique ou choisis le fichier. Tes données actuelles seront remplacées.</p>
+      <input type="file" accept=".json,application/json" class="input" style="padding:12px" data-act="import-file" aria-label="Fichier de sauvegarde">
+      <textarea class="input" id="importbox" placeholder="Colle ici le texte de ta sauvegarde" aria-label="Texte de la sauvegarde"></textarea>
+      <button class="btn btn-dark" data-act="do-import">Importer</button>`}
+  </div>`;
+}
+function sheetSimpleForm() {
+  const f = S.ui.form;
+  const forms = {
+    name: { title: 'Ton prénom', body: `<div class="field"><label for="sf">Prénom</label><input class="input" id="sf" required maxlength="30" value="${esc(S.profile.name)}"></div>` },
+    next: { title: 'Prochaine rentrée', body: `<div class="field"><label for="sf">Date de ta prochaine rentrée d’argent</label><input class="input" type="date" id="sf" value="${esc(S.profile.nextIncome || '')}"><span class="xs muted">Laisse vide si tu ne sais pas : l’app comptera 30 jours, par prudence.</span></div>` },
+    brick: { title: 'Valeur d’une brique', body: `<div class="chips">${[100, 200, 500, 1000].map(v => `<button type="button" class="pill" data-act="brick-val" data-v="${v}" aria-pressed="${(S.profile.brickValue || 200) === v}">${F(v)}</button>`).join('')}</div>` },
+    charge: { title: 'Nouvelle charge fixe', body: `<div class="field"><label for="cf-name">Nom</label><input class="input" id="cf-name" required maxlength="30" placeholder="Loyer, tontine, scolarité…"></div><div class="field"><label for="cf-amount">Montant par mois (F)</label><input class="input" id="cf-amount" required inputmode="numeric" pattern="[0-9 ]*" placeholder="40000"></div><label class="row small" style="gap:8px;min-height:44px"><input type="checkbox" id="cf-paid"> Déjà payée pour cette période</label>` },
+    mode: { title: 'Comment tu gagnes ton argent ?', body: modeOptions(f.mode || S.profile.mode) + `<div class="field" id="payday-field" ${(f.mode || S.profile.mode) === 'irregulier' ? 'hidden' : ''}><label for="sf-pay">Jour de paie dans le mois</label><input class="input" id="sf-pay" inputmode="numeric" pattern="[0-9]*" value="${S.profile.payDay || ''}" placeholder="28"></div>` }
+  };
+  const fm = forms[f.which];
+  return `<div class="sheet" role="dialog" aria-modal="true" aria-label="${fm.title}">
+    <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">${fm.title}</span></div>
+    <form class="col" style="gap:14px" data-form="simple">${fm.body}${f.which === 'brick' ? '' : '<button class="btn btn-dark btn-block" type="submit">Enregistrer</button>'}</form>
+  </div>`;
+}
+function modeOptions(cur) {
+  const opts = [
+    ['salaire', 'Salaire chaque mois', 'Un salaire fixe, à date connue'],
+    ['irregulier', 'Revenus irréguliers', 'Freelance, contrats, business, primes'],
+    ['mixte', 'Les deux', 'Un salaire + des revenus en plus']
+  ];
+  return `<div class="col" style="gap:10px">${opts.map(o => `<button type="button" class="option" data-act="pick-mode" data-m="${o[0]}" aria-pressed="${cur === o[0]}"><span class="col" style="gap:2px"><b>${o[1]}</b><span class="small muted">${o[2]}</span></span></button>`).join('')}</div>`;
+}
+
+/* ---------- Onboarding ---------- */
+function viewOnboarding() {
+  const f = S.ui.ob || (S.ui.ob = { step: 0, charges: [] });
+  const steps = 6;
+  const progress = `<div class="row" style="gap:6px" aria-hidden="true">${Array.from({ length: steps }, (_, i) => `<span style="flex:1;height:5px;border-radius:999px;background:${i <= f.step ? 'var(--brick)' : 'var(--line)'}"></span>`).join('')}</div>`;
+  const back = f.step > 0 ? `<button class="iconbtn" data-act="ob-back" aria-label="Retour">${I.back}</button>` : '<span></span>';
+  let body = '';
+  if (f.step === 0) body = `
+    <div class="col" style="gap:14px;padding-top:20px">
+      <div class="mini-bricks" aria-hidden="true" style="width:160px">${Array.from({ length: 10 }, (_, i) => `<span class="new" style="--i:${i}"></span>`).join('')}</div>
+      <h1 class="display" style="font-size:40px;font-weight:800;line-height:1.02;margin:8px 0 0">Construis ta vie,<br>brique par brique.</h1>
+      <p class="muted" style="margin:0;line-height:1.5">Note tes dépenses en 3 secondes. Chaque soir, ce que tu n’as pas dépensé devient une brique de ton rêve.</p>
+    </div>
+    <form class="col" style="gap:14px;margin-top:auto" data-form="ob">
+      <div class="field"><label for="ob-name">Comment tu t’appelles ?</label><input class="input" id="ob-name" required maxlength="30" autocomplete="given-name" value="${esc(f.name || '')}" placeholder="Ton prénom"></div>
+      <button class="btn btn-brick btn-block" type="submit">Commencer</button>
+    </form>`;
+  else if (f.step === 1) body = `
+    <h1 class="h1">Comment tu gagnes ton argent ?</h1>
+    <p class="muted" style="margin:0">Ça change la façon de calculer ton budget du jour.</p>
+    ${modeOptions(f.mode)}
+    <form class="col" style="gap:14px;margin-top:auto" data-form="ob">
+      ${f.mode && f.mode !== 'irregulier' ? `<div class="field"><label for="ob-pay">Quel jour du mois tombe ta paie ?</label><input class="input" id="ob-pay" required inputmode="numeric" pattern="[0-9]*" placeholder="28" value="${f.payDay || ''}"></div>` : ''}
+      <button class="btn btn-brick btn-block" type="submit" ${f.mode ? '' : 'disabled'}>Continuer</button>
+    </form>`;
+  else if (f.step === 2) body = `
+    <h1 class="h1">Combien tu as en ce moment ?</h1>
+    <p class="muted" style="margin:0">Espèces + mobile money, à peu près. Tu pourras corriger plus tard.</p>
+    <div class="col" style="align-items:center;padding:10px 0"><span class="row" style="align-items:baseline;gap:8px"><span class="amountbig">${fmt(Number(f.amount || 0))}</span><span class="display" style="font-size:28px;font-weight:700;color:var(--muted)">F</span></span></div>
+    <div style="flex:1"></div>
+    ${padHTML()}
+    <button class="btn btn-brick btn-block" data-act="ob-next" ${Number(f.amount) > 0 ? '' : 'disabled'}>Continuer</button>`;
+  else if (f.step === 3) {
+    const suggested = f.mode !== 'irregulier' && f.payDay ? nextPayDate(f.payDay, today()) : '';
+    body = `
+    <h1 class="h1">${f.mode === 'irregulier' ? 'Ta prochaine rentrée d’argent ?' : 'Ta prochaine paie'}</h1>
+    <p class="muted" style="margin:0">Ton argent doit tenir jusque-là. ${f.mode === 'irregulier' ? 'Si tu ne sais pas, laisse vide : l’app comptera 30 jours, par prudence.' : ''}</p>
+    <form class="col" style="gap:14px;flex:1" data-form="ob">
+      <div class="field"><label for="ob-next">Date</label><input class="input" type="date" id="ob-next" value="${esc(f.next != null ? f.next : suggested)}" ${f.mode === 'irregulier' ? '' : 'required'}></div>
+      <button class="btn btn-brick btn-block" type="submit" style="margin-top:auto">Continuer</button>
+    </form>`;
+  }
+  else if (f.step === 4) body = `
+    <h1 class="h1">Tes charges fixes</h1>
+    <p class="muted" style="margin:0">Ce que tu paies chaque mois quoi qu’il arrive : loyer, scolarité, tontine… Coche celles déjà payées.</p>
+    <div class="col" style="gap:4px">${f.charges.map((c, i) => `<div class="between card" style="padding:10px 14px"><span class="col" style="gap:1px"><b>${esc(c.name)}</b><span class="xs muted">${F(c.amount)}</span></span>
+      <span class="row"><label class="row xs" style="gap:6px;min-height:44px"><input type="checkbox" data-act="ob-paid" data-i="${i}" ${c.paid ? 'checked' : ''}> payée</label><button class="link" data-act="ob-del-charge" data-i="${i}" aria-label="Retirer ${esc(c.name)}">Retirer</button></span></div>`).join('')}</div>
+    <form class="col card" style="gap:10px" data-form="ob-charge">
+      <div class="row" style="gap:8px"><input class="input" id="obc-name" placeholder="Loyer" maxlength="30" aria-label="Nom de la charge" required><input class="input" id="obc-amount" placeholder="Montant" inputmode="numeric" pattern="[0-9 ]*" aria-label="Montant" required style="max-width:130px"></div>
+      <button class="btn btn-ghost" type="submit">${I.plus('currentColor', 18)} Ajouter cette charge</button>
+    </form>
+    <button class="btn btn-brick btn-block" data-act="ob-next" style="margin-top:auto">${f.charges.length ? 'Continuer' : 'Je n’en ai pas, continuer'}</button>`;
+  else if (f.step === 5) body = `
+    <h1 class="h1">Et ton rêve ?</h1>
+    <p class="muted" style="margin:0">Une moto, un terrain, un ordinateur, un voyage… Tu le verras se construire, brique par brique.</p>
+    <form class="col" style="gap:14px;flex:1" data-form="ob">
+      <div class="field"><label for="obg-name">Nom du rêve</label><input class="input" id="obg-name" maxlength="40" placeholder="Ma moto"></div>
+      <div class="field"><label for="obg-target">Montant total (F)</label><input class="input" id="obg-target" inputmode="numeric" pattern="[0-9 ]*" placeholder="380000"></div>
+      <div class="field"><label for="obg-per">${f.mode === 'irregulier' ? 'À mettre de côté à chaque rentrée' : 'À mettre de côté à chaque paie'} (F, facultatif)</label><input class="input" id="obg-per" inputmode="numeric" pattern="[0-9 ]*" placeholder="20000"></div>
+      <div class="col" style="gap:8px;margin-top:auto">
+        <button class="btn btn-brick btn-block" type="submit">Voir mon budget du jour</button>
+        <button class="link" type="button" data-act="ob-skip-goal" style="align-self:center">Plus tard</button>
+      </div>
+    </form>`;
+  return `<main class="shell" style="padding-bottom:calc(env(safe-area-inset-bottom) + 24px)">
+    ${Store.note ? `<div class="warn">${esc(Store.note)}</div>` : ''}
+    <div class="between">${back}<span class="xs muted" style="font-weight:600">${f.step + 1} / ${steps}</span></div>
+    ${progress}
+    ${body}
+  </main>`;
+}
+function finishOnboarding(goalData) {
+  const f = S.ui.ob; const d = today();
+  const charges = f.charges.map(c => ({ id: uid(), name: c.name, amount: c.amount, paid: c.paid }));
+  const paidInit = {}; charges.forEach(c => { if (c.paid) paidInit[c.id] = d; delete c.paid; });
+  S.profile = {
+    v: 1, name: f.name, mode: f.mode, payDay: f.payDay || null,
+    nextIncome: f.next || null, periodStart: d, createdDay: d,
+    charges, chargesPaidInit: paidInit, brickValue: 200, record: 0, seenPct: 0,
+    goal: goalData ? { id: uid(), name: goalData.name, target: goalData.target, per: goalData.per || 0, created: d } : null
+  };
+  const k = mk(d);
+  month(k).adjustments.push({ id: uid(), a: Number(f.amount), day: d, t: new Date().toISOString(), reason: 'Départ' });
+  saveMonth(k); saveProfile();
+  S.ui.ob = null; S.ui.tab = 'home';
+  render();
+  openSheet('explain');
+}
+
+/* ---------- Rendu principal ---------- */
+function render() {
+  const app = document.getElementById('app');
+  if (!S.profile) app.innerHTML = viewOnboarding();
+  else app.innerHTML = ({ home: viewHome, goal: viewGoal, stats: viewStats, profile: viewProfile }[S.ui.tab] || viewHome)();
+  renderSheet();
+}
+function renderSheet() {
+  const el = document.getElementById('sheet');
+  const sh = S.ui.sheet;
+  if (!sh) { el.innerHTML = ''; document.body.style.overflow = ''; return; }
+  document.body.style.overflow = 'hidden';
+  const map = {
+    expense: sheetExpense, income: sheetIncome, ritual: sheetRitual, 'edit-exp': sheetEditExpense,
+    goal: sheetGoalForm, explain: sheetExplain, simple: sheetSimpleForm,
+    deposit: () => sheetAmount('deposit'), withdraw: () => sheetAmount('withdraw'), adjust: () => sheetAmount('adjust'),
+    export: () => sheetBackup('export'), import: () => sheetBackup('import')
+  };
+  const scroll = el.querySelector('.sheet') ? el.querySelector('.sheet').scrollTop : 0;
+  const same = el.dataset.kind === sh;
+  el.innerHTML = `<div class="overlay" ${same ? 'style="animation:none"' : ''}>${map[sh]()}</div>`;
+  if (same) { const s = el.querySelector('.sheet'); if (s) { s.style.animation = 'none'; s.scrollTop = scroll; } }
+  el.dataset.kind = sh;
+}
+function openSheet(kind, form) {
+  S.ui.sheet = kind; S.ui.form = form || {};
+  document.getElementById('sheet').dataset.kind = '';
+  renderSheet();
+}
+function closeSheet() { S.ui.sheet = null; S.ui.form = {}; document.getElementById('sheet').dataset.kind = ''; render(); }
+let toastTimer = null;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.innerHTML = `<div class="toast">${esc(msg)}</div>`;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.innerHTML = ''; }, 2600);
+}
+function confirmBox(text, okLabel, onOk, danger) {
+  const el = document.getElementById('dialog');
+  el.innerHTML = `<div class="dialog" role="alertdialog" aria-modal="true"><div class="box"><p style="margin:0;line-height:1.5;font-weight:500">${esc(text)}</p>
+    <div class="row" style="gap:10px"><button class="btn btn-ghost" style="flex:1" data-dlg="no">Annuler</button><button class="btn ${danger ? '' : 'btn-dark'}" style="flex:1;${danger ? 'background:#9A2A14;color:#fff' : ''}" data-dlg="yes">${esc(okLabel)}</button></div></div></div>`;
+  el.onclick = ev => {
+    const b = ev.target.closest('[data-dlg]'); if (!b && ev.target.classList.contains('dialog')) { el.innerHTML = ''; return; }
+    if (!b) return; el.innerHTML = '';
+    if (b.dataset.dlg === 'yes') onOk();
+  };
+}
+const num = v => Number(String(v || '').replace(/[^0-9]/g, '')) || 0;
+
+/* ---------- Événements ---------- */
+function onKey(k) {
+  const f = S.profile ? S.ui.form : S.ui.ob;
+  let a = String(f.amount || '');
+  if (k === 'back') a = a.slice(0, -1);
+  else if (a.length < 9 && !(a === '' && (k === '0' || k === '000'))) a += k;
+  f.amount = a;
+  if (S.ui.form && S.ui.sheet === 'expense' && f.charge) { /* montant libre pour une charge */ }
+  if (!S.profile) render(); else renderSheet();
+}
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act; const f = S.ui.form;
+  switch (act) {
+    case 'tab': S.ui.tab = el.dataset.tab; render(); window.scrollTo(0, 0); break;
+    case 'month': if (el.dataset.m) { S.ui.month = el.dataset.m; render(); } break;
+    case 'open-expense': openSheet('expense', { start: Date.now(), suggestion: suggestion(), fromRitual: !!el.closest('.sheet.dark') }); break;
+    case 'open-income': openSheet('income', { src: S.profile.mode === 'irregulier' ? null : 'salaire' }); break;
+    case 'open-ritual': openSheet('ritual'); break;
+    case 'open-deposit': openSheet('deposit'); break;
+    case 'open-withdraw': openSheet('withdraw'); break;
+    case 'adjust': openSheet('adjust'); break;
+    case 'explain': openSheet('explain'); break;
+    case 'close-sheet': closeSheet(); break;
+    case 'key': onKey(el.dataset.k); break;
+    case 'cat': f.c = el.dataset.c; f.charge = null; f.chargeMode = false; f.src = 'keypad'; renderSheet(); break;
+    case 'shortcut': { const s = shortcuts()[Number(el.dataset.i)]; f.c = s.c; f.amount = String(s.a); f.charge = null; f.chargeMode = false; f.src = 'shortcut'; renderSheet(); break; }
+    case 'use-sugg': f.c = f.suggestion.c; f.amount = String(f.suggestion.a); f.src = 'suggestion'; f.charge = null; renderSheet(); break;
+    case 'charge-mode': f.chargeMode = !f.chargeMode; if (!f.chargeMode) f.charge = null; renderSheet(); break;
+    case 'pick-charge': { const c = S.profile.charges.find(x => x.id === el.dataset.id); f.charge = c.id; f.c = 'maison'; f.amount = String(c.amount); renderSheet(); break; }
+    case 'toggle-yesterday': f.yesterday = !f.yesterday; renderSheet(); break;
+    case 'save-expense': {
+      const a = num(f.amount); if (!a || !(f.c || f.charge)) break;
+      addExpense({ a, c: f.c || 'autre', note: f.note, charge: f.charge, src: f.src, ms: Date.now() - (f.start || Date.now()), yesterday: f.yesterday });
+      const back = S.ui.sheet === 'expense' && f.fromRitual;
+      const left = budgetToday() - spentOn(today());
+      if (back) { S.ui.sheet = 'ritual'; S.ui.form = {}; document.getElementById('sheet').dataset.kind = ''; render(); } else closeSheet();
+      toast(f.charge ? 'Charge payée, c’est noté.' : left >= 0 ? `C’est noté ! Il te reste ${F(left)} aujourd’hui.` : 'C’est noté. Demain, on rattrape en douceur.');
+      break;
+    }
+    case 'edit-exp': { const t = findTx('expenses', el.dataset.id); if (t) openSheet('edit-exp', { id: t.x.id, amount: String(t.x.a), c: t.x.c, note: t.x.note }); break; }
+    case 'save-edit-exp': { const t = findTx('expenses', f.id); if (t) { t.x.a = num(f.amount); t.x.c = f.c; t.x.note = f.note || ''; saveMonth(t.k); } closeSheet(); toast('Dépense corrigée.'); break; }
+    case 'del-exp': confirmBox('Supprimer cette dépense ?', 'Supprimer', () => { const t = findTx('expenses', f.id); if (t) { t.arr.splice(t.i, 1); saveMonth(t.k); } closeSheet(); toast('Dépense supprimée.'); }, true); break;
+    case 'edit-inc': confirmBox('Supprimer ce revenu ?', 'Supprimer', () => { const t = findTx('incomes', el.dataset.id); if (t) { t.arr.splice(t.i, 1); saveMonth(t.k); } render(); toast('Revenu supprimé.'); }, true); break;
+    case 'inc-src': f.src = el.dataset.s; renderSheet(); break;
+    case 'save-income': {
+      const a = num(f.amount); if (!a || !f.src) break;
+      const nx = document.getElementById('nextinc');
+      addIncome({ a, src: f.src, next: nx ? (nx.value || null) : undefined });
+      S.ui.form = { done: true, saved: a }; renderSheet(); render(); break;
+    }
+    case 'income-deposit': { deposit(Number(el.dataset.a), 'income'); closeSheet(); toast('Bravo : ton rêve est payé en premier.'); break; }
+    case 'save-amount': {
+      const kind = el.dataset.kind; const a = num(f.amount);
+      if (kind === 'deposit' && a) { deposit(a, 'manual'); closeSheet(); toast(`+${fmt(Math.floor(a / (S.profile.brickValue || 200)))} briques posées.`); }
+      else if (kind === 'withdraw' && a) { deposit(-a, 'withdrawal'); closeSheet(); toast('Retrait noté. Le chantier t’attend.'); }
+      else if (kind === 'adjust') { adjustBalance(a); closeSheet(); toast('Solde recalé.'); }
+      break;
+    }
+    case 'do-close': { const r = closeToday(); S.ui.form = { result: r }; renderSheet(); render(); break; }
+    case 'new-goal': openSheet('goal', {}); break;
+    case 'edit-goal': { const g = goal(); openSheet('goal', { editing: true, name: g.name, target: g.target, per: g.per || '' }); break; }
+    case 'finish-goal': confirmBox('Bravo ! On archive ce rêve et on en commence un autre ?', 'Oui', () => { S.profile.goal.done = true; saveProfile(); openSheet('goal', {}); }); break;
+    case 'edit-name': openSheet('simple', { which: 'name' }); break;
+    case 'edit-next': openSheet('simple', { which: 'next' }); break;
+    case 'edit-brick': openSheet('simple', { which: 'brick' }); break;
+    case 'edit-mode': openSheet('simple', { which: 'mode', mode: S.profile.mode }); break;
+    case 'add-charge': openSheet('simple', { which: 'charge' }); break;
+    case 'brick-val': S.profile.brickValue = Number(el.dataset.v); saveProfile(); closeSheet(); toast('Valeur de la brique mise à jour.'); break;
+    case 'pick-mode':
+      if (!S.profile) { S.ui.ob.mode = el.dataset.m; render(); }
+      else { f.mode = el.dataset.m; renderSheet(); }
+      break;
+    case 'del-charge': confirmBox('Retirer cette charge fixe ?', 'Retirer', () => { S.profile.charges = S.profile.charges.filter(c => c.id !== el.dataset.id); saveProfile(); render(); }); break;
+    case 'export': openSheet('export', { json: JSON.stringify({ app: 'brique', v: 1, exported: new Date().toISOString(), profile: S.profile, months: S.months }) }); break;
+    case 'import': openSheet('import', {}); break;
+    case 'copy-export': {
+      const box = document.getElementById('exportbox');
+      const done = () => toast('Copié !');
+      try { navigator.clipboard.writeText(f.json).then(done, () => { box.select(); toast('Sélectionné : copie-le avec ton téléphone.'); }); }
+      catch (e) { box.select(); toast('Sélectionné : copie-le avec ton téléphone.'); }
+      break;
+    }
+    case 'download-export': {
+      try {
+        const blob = new Blob([f.json], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'brique-sauvegarde-' + today() + '.json';
+        document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+      } catch (e) { toast('Téléchargement impossible : utilise « Copier ».'); }
+      break;
+    }
+    case 'do-import': importData(document.getElementById('importbox').value); break;
+    case 'ics': downloadICS(); break;
+    case 'reset': confirmBox('Tout effacer ? Tes dépenses, ton chantier et ta série seront supprimés. Exporte d’abord si tu veux les garder.', 'Tout effacer', resetAll, true); break;
+    /* onboarding */
+    case 'ob-back': S.ui.ob.step = Math.max(0, S.ui.ob.step - 1); render(); break;
+    case 'ob-next': S.ui.ob.step++; render(); break;
+    case 'ob-del-charge': S.ui.ob.charges.splice(Number(el.dataset.i), 1); render(); break;
+    case 'ob-skip-goal': finishOnboarding(null); break;
+  }
+});
+document.addEventListener('change', ev => {
+  const el = ev.target;
+  if (el.dataset && el.dataset.act === 'ob-paid') { S.ui.ob.charges[Number(el.dataset.i)].paid = el.checked; }
+  if (el.dataset && el.dataset.act === 'import-file' && el.files && el.files[0]) {
+    const r = new FileReader(); r.onload = () => { document.getElementById('importbox').value = r.result; }; r.readAsText(el.files[0]);
+  }
+});
+document.addEventListener('input', ev => {
+  if (ev.target.id === 'note' && S.ui.form) S.ui.form.note = ev.target.value;
+  if (ev.target.id === 'ob-pay' && S.ui.ob) S.ui.ob.payDay = num(ev.target.value);
+});
+document.addEventListener('submit', ev => {
+  const form = ev.target; ev.preventDefault();
+  const kind = form.dataset.form; const v = id => (document.getElementById(id) || {}).value || '';
+  if (kind === 'ob') {
+    const ob = S.ui.ob;
+    if (ob.step === 0) { ob.name = v('ob-name').trim(); if (!ob.name) return; ob.step = 1; }
+    else if (ob.step === 1) {
+      if (!ob.mode) return;
+      if (ob.mode !== 'irregulier') { const d = num(v('ob-pay')); if (d < 1 || d > 31) { toast('Indique un jour entre 1 et 31.'); return; } ob.payDay = d; }
+      ob.step = 2;
+    }
+    else if (ob.step === 3) { ob.next = v('ob-next') || null; if (ob.next && ob.next <= today()) { toast('Choisis une date à venir.'); return; } ob.step = 4; }
+    else if (ob.step === 5) {
+      const name = v('obg-name').trim(), target = num(v('obg-target')), per = num(v('obg-per'));
+      if (name && target > 0) finishOnboarding({ name, target, per }); else if (!name && !target) finishOnboarding(null);
+      else { toast('Donne un nom et un montant à ton rêve, ou touche « Plus tard ».'); }
+      return;
+    }
+    render(); return;
+  }
+  if (kind === 'ob-charge') {
+    const name = v('obc-name').trim(), amount = num(v('obc-amount'));
+    if (!name || !amount) return;
+    S.ui.ob.charges.push({ name, amount, paid: false }); render(); return;
+  }
+  if (kind === 'goal') {
+    const name = v('g-name').trim(), target = num(v('g-target')), per = num(v('g-per'));
+    if (!name || !target) { toast('Il faut un nom et un montant.'); return; }
+    if (S.ui.form.editing && goal()) Object.assign(S.profile.goal, { name, target, per });
+    else S.profile.goal = { id: uid(), name, target, per, created: today() };
+    saveProfile(); closeSheet(); S.ui.tab = 'goal'; render(); toast('Chantier lancé !'); return;
+  }
+  if (kind === 'simple') {
+    const w = S.ui.form.which; const p = S.profile;
+    if (w === 'name') { const n = v('sf').trim(); if (!n) return; p.name = n; }
+    if (w === 'next') { const d = v('sf'); p.nextIncome = d || null; }
+    if (w === 'charge') {
+      const name = v('cf-name').trim(), amount = num(v('cf-amount')); if (!name || !amount) return;
+      const c = { id: uid(), name, amount }; (p.charges = p.charges || []).push(c);
+      if (document.getElementById('cf-paid').checked) { (p.chargesPaidInit = p.chargesPaidInit || {})[c.id] = today(); }
+    }
+    if (w === 'mode') {
+      const m = S.ui.form.mode; p.mode = m;
+      if (m !== 'irregulier') { const d = num(v('sf-pay')); if (d < 1 || d > 31) { toast('Indique un jour de paie entre 1 et 31.'); return; } p.payDay = d; if (!p.nextIncome) p.nextIncome = nextPayDate(d, today()); }
+    }
+    saveProfile(); closeSheet(); toast('Enregistré.');
+  }
+});
+/* La sélection du mode dans l'onboarding avec jour de paie : on garde la saisie */
+function importData(text) {
+  let data;
+  try { data = JSON.parse(text); } catch (e) { toast('Ce texte n’est pas une sauvegarde Brique.'); return; }
+  if (!data || data.app !== 'brique' || !data.profile || !data.months) { toast('Ce texte n’est pas une sauvegarde Brique.'); return; }
+  confirmBox('Remplacer tes données actuelles par cette sauvegarde ?', 'Remplacer', () => {
+    for (const k in S.months) if (!data.months[k]) Store.remove('m-' + k);
+    S.profile = data.profile; S.months = data.months;
+    saveProfile(); for (const k in S.months) saveMonth(k);
+    closeSheet(); toast('Sauvegarde importée.');
+  });
+}
+async function resetAll() {
+  const ids = ['profile'].concat(Object.keys(S.months).map(k => 'm-' + k));
+  for (const id of ids) await Store.remove(id);
+  S.profile = null; S.months = {}; S.ui = { tab: 'home', sheet: null, form: {}, month: null };
+  render();
+}
+function downloadICS() {
+  const d = parseDay(today()); const dt = d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate());
+  const url = location.href.split('#')[0];
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Brique//FR', 'BEGIN:VEVENT', 'UID:brique-rituel-' + uid() + '@brique', 'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z',
+    'DTSTART:' + dt + 'T210000', 'DURATION:PT5M', 'RRULE:FREQ=DAILY', 'SUMMARY:Brique : on ferme la journée ?', 'DESCRIPTION:10 secondes pour poser tes briques. ' + url, 'URL:' + url,
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:On ferme la journée ?', 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  try {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = 'brique-rappel-21h.ics';
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    toast('Ouvre le fichier pour l’ajouter à ton agenda.');
+  } catch (e) { toast('Ajoute plutôt une alarme quotidienne à 21 h.'); }
+}
+
+/* ---------- Démarrage ---------- */
+async function boot() {
+  await Store.init();
+  try {
+    const docs = await Store.loadAll();
+    S.profile = docs.profile || null;
+    for (const id in docs) if (id.indexOf('m-') === 0) {
+      const m = docs[id];
+      S.months[id.slice(2)] = { expenses: m.expenses || [], incomes: m.incomes || [], deposits: m.deposits || [], closes: m.closes || {}, adjustments: m.adjustments || [] };
+    }
+  } catch (e) {
+    document.getElementById('app').innerHTML = `<main class="shell"><div class="loading" style="min-height:60vh"><span class="h2">Ton chantier est injoignable pour le moment.</span><span class="small muted">Vérifie ta connexion, puis réessaie.</span><button class="btn btn-dark" onclick="location.reload()">Réessayer</button></div></main>`;
+    return;
+  }
+  render();
+  if (!IS_CLAUDE && 'serviceWorker' in navigator && location.protocol !== 'file:') {
+    try { navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
+  }
+}
+/* Rafraîchit l'écran quand on revient dans l'app (nouvelle journée, heure du rituel) */
+document.addEventListener('visibilitychange', () => { if (!document.hidden && S.profile && !S.ui.sheet) render(); });
+boot();
+</script>
+</body>
+</html>
