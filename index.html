@@ -139,6 +139,10 @@ a{color:var(--brick)}
 .warn{background:#FFF4E5;border:1px solid #F3D3A6;border-radius:16px;padding:10px 14px;font-size:13px;color:#5C3D0E}
 hr.sep{border:none;border-top:1px solid var(--line);margin:4px 0}
 .list-head{padding-top:6px}
+.install{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 142px);width:calc(100% - 40px);max-width:400px;z-index:15;background:var(--ink);color:#fff;border-radius:18px;padding:12px 12px 12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:fade .2s both}
+.install b{display:block;font-size:15px}.install span{font-size:12.5px;color:var(--nightMuted)}
+.install .btn{min-height:40px;padding:0 14px;font-size:14px}
+.install .x{background:none;border:none;color:var(--nightMuted);font-size:22px;width:36px;height:40px}
 textarea.input{padding:12px 14px;min-height:110px;font-size:13px;font-family:ui-monospace,monospace}
 </style>
 </head>
@@ -147,6 +151,7 @@ textarea.input{padding:12px 14px;min-height:110px;font-size:13px;font-family:ui-
 <div id="sheet"></div>
 <div id="dialog"></div>
 <div id="toast" aria-live="polite"></div>
+<div id="install"></div>
 <script>
 'use strict';
 /* =========================================================
@@ -169,6 +174,10 @@ const CATS = [
   { id: 'autre', n: 'Autre', s: '' }
 ];
 const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
+/* Catégories créées par la personne (profil.cats). Une catégorie retirée garde son nom pour l'historique. */
+function myCats() { return (S.profile && S.profile.cats) || []; }
+function catList() { return CATS.slice(0, -1).concat(myCats().filter(c => !c.off), CATS.slice(-1)); }
+function catOf(id) { return CAT[id] || myCats().find(c => c.id === id) || CAT.autre; }
 const DEFAULT_SHORTCUTS = [
   { c: 'transport', a: 500 }, { c: 'nourriture', a: 1500 }, { c: 'telephone', a: 1000 },
   { c: 'nourriture', a: 500 }, { c: 'courses', a: 2000 }, { c: 'transport', a: 300 }
@@ -533,7 +542,7 @@ function wallHTML(pct, rows, cols, h, animateFrom) {
   return html + '</span>';
 }
 function expenseRow(e, withDate) {
-  const cat = CAT[e.c] || CAT.autre;
+  const cat = catOf(e.c);
   const charge = e.charge ? (S.profile.charges || []).find(c => c.id === e.charge) : null;
   const label = charge ? charge.name : (e.note || cat.n);
   const meta = (withDate ? '' : hhmm(e.t) + ' · ') + (charge ? 'Charge fixe' : cat.n) + (e.src === 'suggestion' ? ' · suggestion' : '');
@@ -692,7 +701,7 @@ function viewStats() {
     </div>
     <p class="small muted" style="margin:0">${closesN} journée${closesN > 1 ? 's' : ''} fermée${closesN > 1 ? 's' : ''} ce mois-ci.</p>
     ${cats.length ? `<section class="card col" style="gap:12px"><h2 class="h2" style="font-size:17px">Par catégorie</h2>
-      ${cats.map(c => `<div class="col" style="gap:5px"><div class="between small"><span style="font-weight:600">${esc((CAT[c] || CAT.autre).n)}</span><span>${F(byCat[c])} · ${Math.round(byCat[c] / totalVar * 100)} %</span></div><div class="catbar"><i style="width:${Math.max(3, Math.round(byCat[c] / max * 100))}%"></i></div></div>`).join('')}
+      ${cats.map(c => `<div class="col" style="gap:5px"><div class="between small"><span style="font-weight:600">${esc(catOf(c).n)}</span><span>${F(byCat[c])} · ${Math.round(byCat[c] / totalVar * 100)} %</span></div><div class="catbar"><i style="width:${Math.max(3, Math.round(byCat[c] / max * 100))}%"></i></div></div>`).join('')}
     </section>` : ''}
     ${m.incomes.length ? `<section class="col" style="gap:2px"><h2 class="h2 list-head" style="font-size:17px">Revenus</h2>
       ${m.incomes.slice().sort((a, b) => b.t.localeCompare(a.t)).map(x => `<button class="item" data-act="edit-inc" data-id="${x.id}"><span class="tile" style="background:#E3EFE6;color:#245A33">+</span><span class="grow col" style="gap:1px"><span style="font-weight:600">${esc((INCOME_SRC.find(s => s.id === x.src) || INCOME_SRC[4]).n)}</span><span class="xs muted">${esc(shortDate(x.day))}</span></span><span style="font-weight:600">+${F(x.a)}</span></button>`).join('')}
@@ -723,6 +732,11 @@ function viewProfile() {
       <p class="xs muted" style="margin:0">Loyer, scolarité, tontine… Elles sont mises de côté avant de calculer ton budget du jour.</p>
       ${(p.charges || []).length ? p.charges.map(c => `<div class="between" style="padding:6px 0"><span class="col" style="gap:1px"><span style="font-weight:600">${esc(c.name)}</span><span class="xs muted">${F(c.amount)} · ${chargePaid(c) ? 'payée pour cette période' : 'à payer'}</span></span><button class="link" data-act="del-charge" data-id="${c.id}" aria-label="Supprimer ${esc(c.name)}">Retirer</button></div>`).join('') : '<p class="small muted" style="margin:4px 0">Aucune charge fixe.</p>'}
     </section>
+    <section class="card col" style="gap:8px">
+      <div class="between"><h2 class="h2" style="font-size:17px">Mes catégories</h2><button class="link" data-act="new-cat">${I.plus('currentColor', 16)} Ajouter</button></div>
+      <p class="xs muted" style="margin:0">Ajoute tes propres catégories de dépenses : école, cotisation, coiffure…</p>
+      ${myCats().filter(c => !c.off).length ? myCats().filter(c => !c.off).map(c => `<div class="between" style="padding:6px 0"><span style="font-weight:600">${esc(c.n)}</span><button class="link" data-act="del-cat" data-id="${c.id}" aria-label="Retirer ${esc(c.n)}">Retirer</button></div>`).join('') : '<p class="small muted" style="margin:4px 0">Aucune catégorie perso pour l’instant.</p>'}
+    </section>
     <section class="card col" style="gap:10px">
       <h2 class="h2" style="font-size:17px">Mon argent</h2>
       <div class="between"><span class="col" style="gap:2px"><span class="xs muted" style="font-weight:600">Argent disponible selon l’app</span><b>${F(balance())}</b></span><button class="link" data-act="adjust">Recaler</button></div>
@@ -738,6 +752,7 @@ function viewProfile() {
         <button class="btn btn-ghost" data-act="export" style="flex:1">Exporter</button>
         <button class="btn btn-ghost" data-act="import" style="flex:1">Importer</button>
       </div>
+      ${canInstall() ? `<button class="btn btn-dark" data-act="install">Installer l’app sur cet appareil</button>` : ''}
       ${!IS_CLAUDE ? `<button class="btn btn-ghost" data-act="ics">Ajouter un rappel quotidien à 21 h (agenda)</button>` : ''}
     </section>
     <section class="col" style="gap:8px;padding-bottom:12px">
@@ -762,13 +777,13 @@ function sheetExpense() {
       <span class="small muted" style="font-weight:500">Reste aujourd’hui : <b style="color:var(--ink)">${F(Math.max(0, left))}</b></span></div>
     <div class="col" style="align-items:center;gap:6px;padding-top:4px">
       <span class="row" style="align-items:baseline;gap:8px"><span class="amountbig" aria-live="polite">${fmt(amt)}</span><span class="display" style="font-size:28px;font-weight:700;color:var(--muted)">F</span></span>
-      <span class="small muted" style="font-weight:500">${f.charge ? 'Charge fixe : ' + esc((S.profile.charges.find(c => c.id === f.charge) || {}).name) : f.c ? 'Catégorie : ' + esc(CAT[f.c].n) : 'Choisis une catégorie ou un raccourci'}</span>
+      <span class="small muted" style="font-weight:500">${f.charge ? 'Charge fixe : ' + esc((S.profile.charges.find(c => c.id === f.charge) || {}).name) : f.c ? 'Catégorie : ' + esc(catOf(f.c).n) : 'Choisis une catégorie ou un raccourci'}</span>
     </div>
-    ${sg ? `<button class="sugg" data-act="use-sugg">${'<span class="tile" style="width:36px;height:36px">' + I.clock + '</span>'}<span class="grow col" style="gap:1px"><span style="font-weight:600">${esc(CAT[sg.c].n)}, ${F(sg.a)} ?</span><span class="xs muted">Comme souvent à cette heure-ci</span></span><span class="small" style="font-weight:700;color:var(--brick)">Oui</span></button>` : ''}
+    ${sg ? `<button class="sugg" data-act="use-sugg">${'<span class="tile" style="width:36px;height:36px">' + I.clock + '</span>'}<span class="grow col" style="gap:1px"><span style="font-weight:600">${esc(catOf(sg.c).n)}, ${F(sg.a)} ?</span><span class="xs muted">Comme souvent à cette heure-ci</span></span><span class="small" style="font-weight:700;color:var(--brick)">Oui</span></button>` : ''}
     <div class="col" style="gap:6px"><span class="xs muted" style="font-weight:600">Raccourcis</span>
-      <div class="chips scroll">${scs.map((s, i) => `<button type="button" class="pill" data-act="shortcut" data-i="${i}" aria-pressed="${f.c === s.c && amt === s.a && !f.charge}">${esc(CAT[s.c].n)}<small>${F(s.a)}</small></button>`).join('')}</div></div>
+      <div class="chips scroll">${scs.map((s, i) => `<button type="button" class="pill" data-act="shortcut" data-i="${i}" aria-pressed="${f.c === s.c && amt === s.a && !f.charge}">${esc(catOf(s.c).n)}<small>${F(s.a)}</small></button>`).join('')}</div></div>
     <div class="col" style="gap:6px"><span class="xs muted" style="font-weight:600">Catégorie</span>
-      <div class="chips scroll">${CATS.map(c => `<button type="button" class="pill" data-act="cat" data-c="${c.id}" aria-pressed="${f.c === c.id && !f.charge}">${esc(c.n)}</button>`).join('')}
+      <div class="chips scroll">${catList().map(c => `<button type="button" class="pill" data-act="cat" data-c="${c.id}" aria-pressed="${f.c === c.id && !f.charge}">${esc(c.n)}</button>`).join('')}<button type="button" class="pill" data-act="new-cat" style="border-style:dashed;color:var(--brick)">+ Nouvelle</button>
       ${unpaid.length ? `<button type="button" class="pill" data-act="charge-mode" aria-pressed="${!!f.chargeMode}">Charge fixe</button>` : ''}</div></div>
     ${f.chargeMode ? `<div class="chips scroll">${unpaid.map(c => `<button type="button" class="pill" data-act="pick-charge" data-id="${c.id}" aria-pressed="${f.charge === c.id}">${esc(c.name)}<small>${F(c.amount)}</small></button>`).join('')}</div>` : ''}
     <div class="row" style="gap:8px">
@@ -866,7 +881,7 @@ function sheetRitual() {
     <span class="display" style="font-size:38px;font-weight:800;line-height:1.05">${closed ? 'Journée<br>déjà fermée' : 'On ferme<br>la journée ?'}</span>
     <span class="muted" style="line-height:1.45">${closed ? 'Tu l’as fermée à ' + hhmm(closed.t) + '. Les dépenses ajoutées après seront réparties sur demain.' : 'Jette un œil à tes dépenses. Si tout y est, un tap et c’est fini.'}</span>
     <div class="nightcard" style="padding:6px 16px">
-      ${todays.length ? todays.map(e => { const cat = CAT[e.c] || CAT.autre; const ch = e.charge ? (S.profile.charges || []).find(c => c.id === e.charge) : null; return `<div class="between" style="padding:10px 0;border-bottom:1px solid var(--night3)"><span class="col" style="gap:1px"><span style="font-weight:600">${esc(ch ? ch.name : (e.note || cat.n))}</span><span class="xs muted">${hhmm(e.t)}${ch ? ' · charge fixe' : ''}</span></span><span style="font-weight:600">${F(e.a)}</span></div>`; }).join('') : '<p class="muted" style="margin:12px 0">Aucune dépense aujourd’hui. Vraiment ?</p>'}
+      ${todays.length ? todays.map(e => { const cat = catOf(e.c); const ch = e.charge ? (S.profile.charges || []).find(c => c.id === e.charge) : null; return `<div class="between" style="padding:10px 0;border-bottom:1px solid var(--night3)"><span class="col" style="gap:1px"><span style="font-weight:600">${esc(ch ? ch.name : (e.note || cat.n))}</span><span class="xs muted">${hhmm(e.t)}${ch ? ' · charge fixe' : ''}</span></span><span style="font-weight:600">${F(e.a)}</span></div>`; }).join('') : '<p class="muted" style="margin:12px 0">Aucune dépense aujourd’hui. Vraiment ?</p>'}
       <div class="between" style="padding:12px 0 8px"><span class="small muted">Total du jour</span><span class="display" style="font-size:20px;font-weight:800">${F(s)} <span class="small muted" style="font-weight:500">/ ${F(b)}</span></span></div>
     </div>
     <button class="link" style="color:var(--gold)" data-act="open-expense">${I.plus('currentColor', 18)} J’ai oublié une dépense</button>
@@ -881,7 +896,7 @@ function sheetEditExpense() {
   return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Modifier la dépense">
     <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">${esc(longDate(t.x.day))} · ${hhmm(t.x.t)}</span></div>
     <div class="col" style="align-items:center;gap:6px"><span class="row" style="align-items:baseline;gap:8px"><span class="amountbig">${fmt(Number(f.amount || 0))}</span><span class="display" style="font-size:28px;font-weight:700;color:var(--muted)">F</span></span></div>
-    ${t.x.charge ? '' : `<div class="chips">${CATS.map(c => `<button type="button" class="pill" data-act="cat" data-c="${c.id}" aria-pressed="${f.c === c.id}">${esc(c.n)}</button>`).join('')}</div>`}
+    ${t.x.charge ? '' : `<div class="chips">${catList().map(c => `<button type="button" class="pill" data-act="cat" data-c="${c.id}" aria-pressed="${f.c === c.id}">${esc(c.n)}</button>`).join('')}<button type="button" class="pill" data-act="new-cat" style="border-style:dashed;color:var(--brick)">+ Nouvelle</button></div>`}
     <input class="input" id="note" placeholder="Note (facultatif)" value="${esc(f.note || '')}" maxlength="60" aria-label="Note">
     ${padHTML()}
     <div class="row" style="gap:10px"><button class="btn btn-ghost" data-act="del-exp" style="color:#9A2A14">Supprimer</button>
@@ -1096,6 +1111,15 @@ function confirmBox(text, okLabel, onOk, danger) {
     if (b.dataset.dlg === 'yes') onOk();
   };
 }
+function promptBox(title, placeholder, onOk) {
+  const el = document.getElementById('dialog');
+  el.innerHTML = `<div class="dialog" role="alertdialog" aria-modal="true"><form class="box" data-form="prompt"><label for="pb" style="font-weight:600">${esc(title)}</label>
+    <input class="input" id="pb" required maxlength="24" autocomplete="off" placeholder="${esc(placeholder)}">
+    <div class="row" style="gap:10px"><button type="button" class="btn btn-ghost" style="flex:1" data-dlg="no">Annuler</button><button class="btn btn-dark" style="flex:1">Ajouter</button></div></form></div>`;
+  el.onclick = ev => { if (ev.target.closest('[data-dlg]') || ev.target.classList.contains('dialog')) el.innerHTML = ''; };
+  el.onsubmit = ev => { ev.preventDefault(); const v = document.getElementById('pb').value.trim(); if (!v) return; el.innerHTML = ''; onOk(v); };
+  setTimeout(() => { const i = document.getElementById('pb'); if (i) i.focus(); }, 50);
+}
 const num = v => Number(String(v || '').replace(/[^0-9]/g, '')) || 0;
 
 /* ---------- Événements ---------- */
@@ -1191,6 +1215,15 @@ document.addEventListener('click', ev => {
     }
     case 'do-import': importData(document.getElementById('importbox').value); break;
     case 'ics': downloadICS(); break;
+    case 'new-cat': promptBox('Nouvelle catégorie', 'École, cotisation, coiffure…', name => {
+      if (catList().some(c => c.n.toLowerCase() === name.toLowerCase())) { toast('Cette catégorie existe déjà.'); return; }
+      const c = { id: 'u-' + uid(), n: name }; (S.profile.cats = S.profile.cats || []).push(c); saveProfile();
+      if (S.ui.sheet === 'expense' || S.ui.sheet === 'edit-exp') { f.c = c.id; f.charge = null; f.chargeMode = false; renderSheet(); } else render();
+      toast('Catégorie « ' + name + ' » ajoutée.');
+    }); break;
+    case 'del-cat': confirmBox('Retirer cette catégorie ? Les dépenses déjà notées la gardent.', 'Retirer', () => { const c = myCats().find(x => x.id === el.dataset.id); if (c) { c.off = true; saveProfile(); } render(); }); break;
+    case 'install': doInstall(); break;
+    case 'install-later': hideInstall(true); break;
     case 'reset': confirmBox('Tout effacer ? Tes dépenses, ton chantier et ta série seront supprimés. Exporte d’abord si tu veux les garder.', 'Tout effacer', resetAll, true); break;
     /* onboarding */
     case 'ob-back': S.ui.ob.step = Math.max(0, S.ui.ob.step - 1); render(); break;
@@ -1212,7 +1245,7 @@ document.addEventListener('input', ev => {
 });
 document.addEventListener('submit', ev => {
   const form = ev.target; ev.preventDefault();
-  const kind = form.dataset.form; const v = id => (document.getElementById(id) || {}).value || '';
+  const kind = form.dataset.form; if (kind === 'prompt') return; const v = id => (document.getElementById(id) || {}).value || '';
   if (kind === 'ob') {
     const ob = S.ui.ob;
     if (ob.step === 0) { ob.name = v('ob-name').trim(); if (!ob.name) return; ob.step = 1; }
@@ -1289,6 +1322,37 @@ function downloadICS() {
   } catch (e) { toast('Ajoute plutôt une alarme quotidienne à 21 h.'); }
 }
 
+/* ---------- Installation (écran d'accueil) ---------- */
+let installEvt = null;
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function canInstall() { return !IS_CLAUDE && !isStandalone() && location.protocol !== 'file:' && (!!installEvt || isIOS()); }
+function showInstall() {
+  if (!canInstall()) return;
+  try { if (Date.now() - Number(localStorage.getItem('brique-install-later') || 0) < 3 * 864e5) return; } catch (e) {}
+  document.getElementById('install').innerHTML = `<div class="install" role="region" aria-label="Installer l’app"><span class="tile" style="width:40px;height:40px;flex-shrink:0;background:var(--brick);color:#fff;font-weight:800">B</span>
+    <div class="grow col" style="gap:1px"><b>Installe Brique</b><span>${installEvt ? 'Ouvre-la d’un tap, même hors ligne.' : 'Partager › Sur l’écran d’accueil'}</span></div>
+    <button class="btn btn-brick" data-act="install">${installEvt ? 'Installer' : 'Comment ?'}</button><button class="x" data-act="install-later" aria-label="Plus tard">×</button></div>`;
+}
+function hideInstall(later) {
+  document.getElementById('install').innerHTML = '';
+  if (later) { try { localStorage.setItem('brique-install-later', String(Date.now())); } catch (e) {} }
+}
+async function doInstall() {
+  if (installEvt) {
+    const e = installEvt; installEvt = null; hideInstall();
+    try { e.prompt(); const r = await e.userChoice; if (r && r.outcome !== 'accepted') hideInstall(true); } catch (err) {}
+    if (S.profile && S.ui.tab === 'profile' && !S.ui.sheet) render();
+  } else if (isIOS()) {
+    confirmBox('Sur iPhone, ouvre Brique dans Safari, touche le bouton Partager (le carré avec une flèche), puis « Sur l’écran d’accueil ».', 'Compris', () => hideInstall(true));
+  }
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); installEvt = e; showInstall();
+  if (S.profile && S.ui.tab === 'profile' && !S.ui.sheet) render();
+});
+window.addEventListener('appinstalled', () => { installEvt = null; hideInstall(); toast('Brique est installée !'); });
+
 /* ---------- Démarrage ---------- */
 async function boot() {
   await Store.init();
@@ -1307,6 +1371,7 @@ async function boot() {
   if (!IS_CLAUDE && 'serviceWorker' in navigator && location.protocol !== 'file:') {
     try { navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
   }
+  if (isIOS()) showInstall();
 }
 /* Rafraîchit l'écran quand on revient dans l'app (nouvelle journée, heure du rituel) */
 document.addEventListener('visibilitychange', () => { if (!document.hidden && S.profile && !S.ui.sheet) render(); });
