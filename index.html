@@ -193,12 +193,34 @@ const INCOME_SRC_ETU = [
 ];
 /* Profils : salaire, irrégulier, mixte, étudiant (argent des parents, bourse, petits jobs). */
 const isStudent = m => m === 'etudiant';
-/* Pas de date fixe : revenus irréguliers, ou étudiant qui ne reçoit pas son argent à jour fixe. */
-const noFixedDay = (m, payDay) => m === 'irregulier' || (m === 'etudiant' && !payDay);
+/* Rythme de l'argent reçu : 'jour', 'semaine' (payWeekday, 0 = dimanche), 'mois' (payDay) ou null (ça varie).
+   Seul l'étudiant choisit son rythme ; les salariés sont payés au mois. */
+function freqOf(o) {
+  if (o.mode === 'irregulier') return null;
+  if (isStudent(o.mode)) {
+    if (o.freq === 'jour') return 'jour';
+    if (o.freq === 'semaine') return o.payWeekday != null ? 'semaine' : null;
+    if (o.freq === 'varie') return null;
+    return o.payDay ? 'mois' : null;
+  }
+  return o.payDay ? 'mois' : null;
+}
+const noFixed = o => !freqOf(o);
+function nextIncomeDate(o, from) {
+  const f = freqOf(o);
+  if (f === 'jour') return addDays(from, 1);
+  if (f === 'semaine') { const n = (o.payWeekday - parseDay(from).getDay() + 7) % 7; return addDays(from, n || 7); }
+  if (f === 'mois') return nextPayDate(o.payDay, from);
+  return null;
+}
+function freqLabel(o) {
+  const f = freqOf(o);
+  return f === 'jour' ? 'argent reçu chaque jour' : f === 'semaine' ? 'argent reçu chaque ' + DAYS[o.payWeekday] : f === 'mois' ? 'argent reçu vers le ' + o.payDay + ' du mois' : 'sans date fixe';
+}
 const incomeSrcs = m => isStudent(m) ? INCOME_SRC_ETU : INCOME_SRC;
 /* Les rentrées qui ouvrent une nouvelle période (comme une paie). */
 const mainSrcs = m => isStudent(m) ? ['parents', 'bourse'] : ['salaire'];
-const payWord = m => isStudent(m) ? 'à chaque fois que tu reçois ton argent' : m === 'irregulier' ? 'à chaque rentrée d’argent' : 'à chaque paie';
+const payWord = m => isStudent(m) ? 'à chaque fois que tu reçois de l’argent' : m === 'irregulier' ? 'à chaque rentrée d’argent' : 'à chaque paie';
 const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const DAYS = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
 let IS_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
@@ -344,7 +366,8 @@ function balance() {
     - sum(all('expenses'), x => x.a) - sum(all('deposits'), x => x.a);
 }
 function chargeStart() {
-  return noFixedDay(S.profile.mode, S.profile.payDay) ? today().slice(0, 8) + '01' : S.profile.periodStart;
+  /* Les charges fixes sont mensuelles : on suit la paie si elle est au mois, sinon le mois calendaire. */
+  return freqOf(S.profile) === 'mois' ? S.profile.periodStart : today().slice(0, 8) + '01';
 }
 function chargePaid(c) {
   const start = chargeStart();
@@ -362,7 +385,7 @@ function daysLeft() {
   const nx = S.profile.nextIncome;
   if (!nx) return 30;
   const d = diffDays(today(), nx);
-  if (d <= 0) return 7;
+  if (d <= 0) return freqOf(S.profile) === 'jour' ? 1 : 7;
   return d;
 }
 function incomeOverdue() { const nx = S.profile.nextIncome; return !!nx && diffDays(today(), nx) <= 0; }
@@ -467,10 +490,10 @@ function addIncome({ a, src, next }) {
   month(k).incomes.push({ id: uid(), a, src, day: d, t: new Date().toISOString() });
   saveMonth(k);
   const p = S.profile;
-  const resets = noFixedDay(p.mode, p.payDay) || mainSrcs(p.mode).includes(src);
+  const resets = noFixed(p) || mainSrcs(p.mode).includes(src);
   if (resets) {
     p.periodStart = d;
-    if (!noFixedDay(p.mode, p.payDay) && mainSrcs(p.mode).includes(src) && p.payDay) p.nextIncome = nextPayDate(p.payDay, d);
+    if (!noFixed(p) && mainSrcs(p.mode).includes(src)) p.nextIncome = nextIncomeDate(p, d);
     if (next !== undefined) p.nextIncome = next || null;
     saveProfile();
   }
@@ -600,7 +623,7 @@ function viewHome() {
       <div class="col" style="gap:2px"><span class="small muted" style="font-weight:500">${esc(longDate(d))}</span><h1 class="h1">${hello} ${esc(p.name)}</h1></div>
       <span class="chip" role="img" aria-label="Série de ${st.count} jours">${I.flame()}<span>${st.count}</span><span class="xs muted" style="font-weight:500">jour${st.count > 1 ? 's' : ''}</span></span>
     </div>
-    ${incomeOverdue() ? `<button class="banner soft" data-act="open-income">${I.coin}<span class="grow"><b>Ta rentrée d’argent est arrivée ?</b><br><span class="small muted">Note-la pour recalculer ton budget.</span></span></button>` : ''}
+    ${incomeOverdue() ? `<button class="banner soft" data-act="open-income">${I.coin}<span class="grow"><b>${freqOf(S.profile) === 'jour' ? 'Tu as reçu ton argent du jour ?' : 'Ta rentrée d’argent est arrivée ?'}</b><br><span class="small muted">Note-la pour recalculer ton budget.</span></span></button>` : ''}
     <button class="hero" data-act="explain" aria-label="Voir comment le budget du jour est calculé">
       <span class="hero-bricks" aria-hidden="true">${'<span></span>'.repeat(8)}</span>
       <span style="font-size:15px;font-weight:500">${heroTop}</span>
@@ -729,7 +752,7 @@ function viewStats() {
 /* ---------- Écran : Profil ---------- */
 function viewProfile() {
   const p = S.profile;
-  const modeLabel = { salaire: 'Salaire chaque mois', irregulier: 'Revenus irréguliers', mixte: 'Salaire + revenus en plus', etudiant: 'Étudiant(e) · ' + (p.payDay ? 'argent reçu vers le ' + p.payDay : 'sans date fixe') }[p.mode];
+  const modeLabel = { salaire: 'Salaire chaque mois', irregulier: 'Revenus irréguliers', mixte: 'Salaire + revenus en plus', etudiant: 'Étudiant(e) · ' + freqLabel(p) }[p.mode];
   const bc = budgetCalc();
   return `<main class="shell">
     <h1 class="h1">Profil</h1>
@@ -821,8 +844,8 @@ function sheetIncome() {
         <button class="btn btn-dark btn-block" data-act="close-sheet">Terminé</button>
       </div></div>`;
   }
-  const showNext = noFixedDay(p.mode, p.payDay) || mainSrcs(p.mode).includes(f.src);
-  const defaultNext = p.mode !== 'irregulier' && p.payDay ? nextPayDate(p.payDay, today()) : (p.nextIncome || '');
+  const showNext = freqOf(p) !== 'jour' && (noFixed(p) || mainSrcs(p.mode).includes(f.src));
+  const defaultNext = nextIncomeDate(p, today()) || p.nextIncome || '';
   return `<div class="sheet" role="dialog" aria-modal="true" aria-label="Ajouter un revenu">
     <div class="between"><button class="iconbtn" data-act="close-sheet" aria-label="Fermer">${I.close}</button><span class="small muted" style="font-weight:600">Argent qui rentre</span></div>
     <div class="col" style="align-items:center;gap:6px;padding-top:4px">
@@ -972,7 +995,7 @@ function sheetSimpleForm() {
     next: { title: 'Prochaine rentrée', body: `<div class="field"><label for="sf">Date de ta prochaine rentrée d’argent</label><input class="input" type="date" id="sf" value="${esc(S.profile.nextIncome || '')}"><span class="xs muted">Laisse vide si tu ne sais pas : l’app comptera 30 jours, par prudence.</span></div>` },
     brick: { title: 'Valeur d’une brique', body: `<div class="chips">${[100, 200, 500, 1000].map(v => `<button type="button" class="pill" data-act="brick-val" data-v="${v}" aria-pressed="${(S.profile.brickValue || 200) === v}">${F(v)}</button>`).join('')}</div>` },
     charge: { title: 'Nouvelle charge fixe', body: `<div class="field"><label for="cf-name">Nom</label><input class="input" id="cf-name" required maxlength="30" placeholder="Loyer, tontine, scolarité…"></div><div class="field"><label for="cf-amount">Montant par mois (F)</label><input class="input" id="cf-amount" required inputmode="numeric" pattern="[0-9 ]*" placeholder="40000"></div><label class="row small" style="gap:8px;min-height:44px"><input type="checkbox" id="cf-paid"> Déjà payée pour cette période</label>` },
-    mode: { title: 'D’où vient ton argent ?', body: modeOptions(f.mode || S.profile.mode) + payDayField('sf-pay', f.mode || S.profile.mode, S.profile.payDay) }
+    mode: { title: 'D’où vient ton argent ?', body: modeOptions(f.mode || S.profile.mode) + payDayField('sf-pay', f) }
   };
   const fm = forms[f.which];
   return `<div class="sheet" role="dialog" aria-modal="true" aria-label="${fm.title}">
@@ -980,17 +1003,31 @@ function sheetSimpleForm() {
     <form class="col" style="gap:14px" data-form="simple">${fm.body}${f.which === 'brick' ? '' : '<button class="btn btn-dark btn-block" type="submit">Enregistrer</button>'}</form>
   </div>`;
 }
-function payDayField(id, mode, val) {
+/* o : { mode, freq, payDay, payWeekday } en cours de saisie (onboarding ou formulaire Profil). */
+function payDayField(id, o) {
+  const mode = o.mode;
   if (!mode || mode === 'irregulier') return '';
-  return isStudent(mode)
-    ? `<div class="field"><label for="${id}">Tu reçois ton argent (parents, bourse) à une date fixe ? Indique le jour du mois</label><input class="input" id="${id}" inputmode="numeric" pattern="[0-9]*" placeholder="Ex. 5 — laisse vide si ça varie" value="${val || ''}"><span class="xs muted">Facultatif. Sans date fixe, l’app calcule jusqu’à ta prochaine rentrée.</span></div>`
-    : `<div class="field"><label for="${id}">Quel jour du mois tombe ta paie ?</label><input class="input" id="${id}" required inputmode="numeric" pattern="[0-9]*" placeholder="28" value="${val || ''}"></div>`;
+  const dayInput = (label, req) => `<div class="field"><label for="${id}">${label}</label><input class="input" id="${id}" ${req ? 'required' : ''} inputmode="numeric" pattern="[0-9]*" placeholder="${isStudent(mode) ? '5' : '28'}" value="${o.payDay || ''}"></div>`;
+  if (!isStudent(mode)) return dayInput('Quel jour du mois tombe ta paie ?', true);
+  const pill = (act, v, label, on) => `<button type="button" class="pill" data-act="${act}" data-v="${v}" aria-pressed="${on}">${label}</button>`;
+  const wdOrder = [1, 2, 3, 4, 5, 6, 0];
+  return `<div class="col" style="gap:8px"><b>Tu reçois ton argent (parents, bourse…) :</b>
+    <div class="chips">${[['jour', 'Chaque jour'], ['semaine', 'Chaque semaine'], ['mois', 'Chaque mois'], ['varie', 'Ça varie']].map(x => pill('pick-freq', x[0], x[1], o.freq === x[0])).join('')}</div>
+    ${o.freq === 'semaine' ? `<span class="small muted" style="font-weight:600">Quel jour de la semaine ?</span><div class="chips">${wdOrder.map(d => pill('pick-wd', d, DAYS[d].slice(0, 3).replace(/^./, c => c.toUpperCase()), o.payWeekday === d)).join('')}</div>` : ''}
+    ${o.freq === 'mois' ? dayInput('Quel jour du mois ?', true) : ''}
+    ${o.freq === 'jour' ? '<span class="xs muted">Ton budget du jour sera calculé avec l’argent reçu chaque jour. Pense à le noter dans « Revenu ».</span>' : ''}
+    ${o.freq === 'varie' ? '<span class="xs muted">L’app calculera jusqu’à ta prochaine rentrée, ou sur 30 jours par prudence.</span>' : ''}
+  </div>`;
 }
-/* Jour de paie / de réception saisi : obligatoire sauf pour l'étudiant (facultatif). null = pas de jour fixe, false = invalide. */
-function readPayDay(mode, raw) {
-  if (mode === 'irregulier') return null;
-  if (isStudent(mode) && !String(raw).trim()) return null;
-  const d = num(raw); return d >= 1 && d <= 31 ? d : false;
+/* Lit le rythme saisi. Renvoie { freq, payDay, payWeekday } ou un message d'erreur (string). */
+function readSchedule(o, raw) {
+  if (o.mode === 'irregulier') return { freq: null, payDay: null, payWeekday: null };
+  const day = () => { const d = num(raw); return d >= 1 && d <= 31 ? d : 0; };
+  if (!isStudent(o.mode)) { const d = day(); return d ? { freq: 'mois', payDay: d, payWeekday: null } : 'Indique un jour entre 1 et 31.'; }
+  if (!o.freq) return 'Choisis à quel rythme tu reçois ton argent.';
+  if (o.freq === 'semaine') return o.payWeekday != null ? { freq: 'semaine', payDay: null, payWeekday: o.payWeekday } : 'Choisis le jour de la semaine.';
+  if (o.freq === 'mois') { const d = day(); return d ? { freq: 'mois', payDay: d, payWeekday: null } : 'Indique un jour entre 1 et 31.'; }
+  return { freq: o.freq, payDay: null, payWeekday: null };
 }
 function modeOptions(cur) {
   const opts = [
@@ -1024,7 +1061,7 @@ function viewOnboarding() {
     <p class="muted" style="margin:0">Ça change la façon de calculer ton budget du jour.</p>
     ${modeOptions(f.mode)}
     <form class="col" style="gap:14px;margin-top:auto" data-form="ob">
-      ${payDayField('ob-pay', f.mode, f.payDay)}
+      ${payDayField('ob-pay', f)}
       <button class="btn btn-brick btn-block" type="submit" ${f.mode ? '' : 'disabled'}>Continuer</button>
     </form>`;
   else if (f.step === 2) body = `
@@ -1035,10 +1072,10 @@ function viewOnboarding() {
     ${padHTML()}
     <button class="btn btn-brick btn-block" data-act="ob-next" ${Number(f.amount) > 0 ? '' : 'disabled'}>Continuer</button>`;
   else if (f.step === 3) {
-    const free = noFixedDay(f.mode, f.payDay);
-    const suggested = !free && f.payDay ? nextPayDate(f.payDay, today()) : '';
+    const free = noFixed(f);
+    const suggested = nextIncomeDate(f, today()) || '';
     body = `
-    <h1 class="h1">${isStudent(f.mode) ? 'Quand tu recevras de l’argent ?' : free ? 'Ta prochaine rentrée d’argent ?' : 'Ta prochaine paie'}</h1>
+    <h1 class="h1">${isStudent(f.mode) ? (free ? 'Quand tu recevras de l’argent ?' : 'Ton prochain argent reçu') : free ? 'Ta prochaine rentrée d’argent ?' : 'Ta prochaine paie'}</h1>
     <p class="muted" style="margin:0">Ton argent doit tenir jusque-là. ${free ? 'Si tu ne sais pas, laisse vide : l’app comptera 30 jours, par prudence.' : ''}</p>
     <form class="col" style="gap:14px;flex:1" data-form="ob">
       <div class="field"><label for="ob-next">Date</label><input class="input" type="date" id="ob-next" value="${esc(f.next != null ? f.next : suggested)}" ${free ? '' : 'required'}></div>
@@ -1082,7 +1119,7 @@ function finishOnboarding(goalData) {
   const charges = f.charges.map(c => ({ id: uid(), name: c.name, amount: c.amount, paid: c.paid }));
   const paidInit = {}; charges.forEach(c => { if (c.paid) paidInit[c.id] = d; delete c.paid; });
   S.profile = {
-    v: 1, name: f.name, mode: f.mode, payDay: f.payDay || null, housing: f.housing || null,
+    v: 1, name: f.name, mode: f.mode, payDay: f.payDay || null, freq: f.freq || null, payWeekday: f.payWeekday != null ? f.payWeekday : null, housing: f.housing || null,
     nextIncome: f.next || null, periodStart: d, createdDay: d,
     charges, chargesPaidInit: paidInit, brickValue: 200, record: 0, seenPct: 0,
     goal: goalData ? { id: uid(), name: goalData.name, target: goalData.target, per: goalData.per || 0, created: d } : null
@@ -1169,7 +1206,12 @@ document.addEventListener('click', ev => {
     case 'tab': S.ui.tab = el.dataset.tab; render(); window.scrollTo(0, 0); break;
     case 'month': if (el.dataset.m) { S.ui.month = el.dataset.m; render(); } break;
     case 'open-expense': openSheet('expense', { start: Date.now(), suggestion: suggestion(), fromRitual: !!el.closest('.sheet.dark') }); break;
-    case 'open-income': openSheet('income', { src: noFixedDay(S.profile.mode, S.profile.payDay) ? null : mainSrcs(S.profile.mode)[0] }); break;
+    case 'open-income': {
+      const p = S.profile; const fq = freqOf(p);
+      /* Argent reçu chaque jour ou chaque semaine : on propose le même montant que la dernière fois. */
+      const last = fq === 'jour' || fq === 'semaine' ? all('incomes').filter(x => mainSrcs(p.mode).includes(x.src)).sort((x, y) => y.t.localeCompare(x.t))[0] : null;
+      openSheet('income', { src: isStudent(p.mode) ? 'parents' : noFixed(p) ? null : mainSrcs(p.mode)[0], amount: last ? String(last.a) : '' }); break;
+    }
     case 'open-ritual': openSheet('ritual'); break;
     case 'open-deposit': openSheet('deposit'); break;
     case 'open-withdraw': openSheet('withdraw'); break;
@@ -1218,7 +1260,13 @@ document.addEventListener('click', ev => {
     case 'edit-name': openSheet('simple', { which: 'name' }); break;
     case 'edit-next': openSheet('simple', { which: 'next' }); break;
     case 'edit-brick': openSheet('simple', { which: 'brick' }); break;
-    case 'edit-mode': openSheet('simple', { which: 'mode', mode: S.profile.mode }); break;
+    case 'edit-mode': { const p = S.profile; openSheet('simple', { which: 'mode', mode: p.mode, freq: isStudent(p.mode) ? (freqOf(p) || 'varie') : null, payDay: p.payDay, payWeekday: p.payWeekday != null ? p.payWeekday : null }); break; }
+    case 'pick-freq': case 'pick-wd': {
+      const o = S.profile ? f : S.ui.ob;
+      const inp = document.getElementById(S.profile ? 'sf-pay' : 'ob-pay'); if (inp) o.payDay = num(inp.value) || null;
+      if (act === 'pick-freq') o.freq = el.dataset.v; else o.payWeekday = Number(el.dataset.v);
+      if (S.profile) renderSheet(); else render(); break;
+    }
     case 'add-charge': openSheet('simple', { which: 'charge' }); break;
     case 'brick-val': S.profile.brickValue = Number(el.dataset.v); saveProfile(); closeSheet(); toast('Valeur de la brique mise à jour.'); break;
     case 'pick-mode':
@@ -1256,8 +1304,12 @@ document.addEventListener('click', ev => {
     case 'install-later': hideInstall(true); break;
     case 'reset': confirmBox('Tout effacer ? Tes dépenses, ton chantier et ta série seront supprimés. Exporte d’abord si tu veux les garder.', 'Tout effacer', resetAll, true); break;
     /* onboarding */
-    case 'ob-back': S.ui.ob.step = Math.max(0, S.ui.ob.step - 1); render(); break;
-    case 'ob-next': S.ui.ob.step++; render(); break;
+    case 'ob-back': { const ob = S.ui.ob; ob.step = Math.max(0, ob.step - 1); if (ob.step === 3 && freqOf(ob) === 'jour') ob.step = 2; render(); break; }
+    case 'ob-next': {
+      const ob = S.ui.ob; ob.step++;
+      if (ob.step === 3 && freqOf(ob) === 'jour') { ob.next = addDays(today(), 1); ob.step = 4; }
+      render(); break;
+    }
     case 'ob-housing': S.ui.ob.housing = el.dataset.h; render(); break;
     case 'ob-del-charge': S.ui.ob.charges.splice(Number(el.dataset.i), 1); render(); break;
     case 'ob-skip-goal': finishOnboarding(null); break;
@@ -1282,9 +1334,9 @@ document.addEventListener('submit', ev => {
     if (ob.step === 0) { ob.name = v('ob-name').trim(); if (!ob.name) return; ob.step = 1; }
     else if (ob.step === 1) {
       if (!ob.mode) return;
-      const d = readPayDay(ob.mode, v('ob-pay'));
-      if (d === false) { toast('Indique un jour entre 1 et 31.'); return; }
-      ob.payDay = d;
+      const sc = readSchedule(ob, v('ob-pay'));
+      if (typeof sc === 'string') { toast(sc); return; }
+      Object.assign(ob, sc);
       ob.step = 2;
     }
     else if (ob.step === 3) { ob.next = v('ob-next') || null; if (ob.next && ob.next <= today()) { toast('Choisis une date à venir.'); return; } ob.step = 4; }
@@ -1318,10 +1370,10 @@ document.addEventListener('submit', ev => {
       if (document.getElementById('cf-paid').checked) { (p.chargesPaidInit = p.chargesPaidInit || {})[c.id] = today(); }
     }
     if (w === 'mode') {
-      const m = S.ui.form.mode; p.mode = m;
-      const d = readPayDay(m, v('sf-pay'));
-      if (d === false) { toast('Indique un jour entre 1 et 31.'); return; }
-      p.payDay = d; if (d && !p.nextIncome) p.nextIncome = nextPayDate(d, today());
+      const sc = readSchedule(S.ui.form, v('sf-pay'));
+      if (typeof sc === 'string') { toast(sc); return; }
+      p.mode = S.ui.form.mode; Object.assign(p, sc);
+      const nx = nextIncomeDate(p, today()); if (nx) p.nextIncome = nx;
     }
     saveProfile(); closeSheet(); toast('Enregistré.');
   }

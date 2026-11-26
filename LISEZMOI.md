@@ -6,6 +6,41 @@ Une application web installable (PWA), 100 % gratuite :
 - tes données restent **sur ton téléphone** (personne d'autre ne les voit) ;
 - chaque personne à qui tu partages le lien a **sa propre app vide**, avec ses propres données.
 
+## Ton profil : d'où vient ton argent ?
+
+Au début, l'app te demande d'où vient ton argent. Ça change le calcul de ton **budget du jour** :
+
+- **Salaire chaque mois** : ton argent doit tenir jusqu'à ta prochaine paie.
+- **Revenus irréguliers** (freelance, business…) : jusqu'à ta prochaine rentrée, ou 30 jours par prudence si tu ne sais pas.
+- **Les deux** : salaire + revenus en plus.
+- **Étudiant(e), sans salaire** : ton argent vient des parents, de la famille, d'une bourse ou de petits jobs.
+
+### Tu es étudiant(e) ?
+
+Choisis à quel rythme tu reçois ton argent :
+
+| Rythme | Exemple | Comment l'app calcule |
+| --- | --- | --- |
+| **Chaque jour** | Tes parents te donnent 1 000 F chaque matin | Ton budget du jour = l'argent reçu ce jour-là. Note-le chaque jour dans **Revenu** : le montant de la dernière fois est déjà proposé. |
+| **Chaque semaine** | Tu reçois 7 000 F chaque lundi | Ton argent doit tenir jusqu'au lundi suivant. |
+| **Chaque mois** | Bourse ou argent du mois le 5 | Ton argent doit tenir jusqu'au 5 du mois suivant. |
+| **Ça varie** | Tu reçois de l'argent de temps en temps | Jusqu'à la date que tu indiques, ou 30 jours par prudence. |
+
+Quand tu notes un revenu, tu choisis : *Parents, famille*, *Bourse*, *Petit job*, *Cadeau* ou *Autre*. Recevoir l'argent des parents ou la bourse démarre une nouvelle période.
+Tu as aussi une catégorie de dépenses **Études** (photocopies, fournitures).
+
+Tu peux changer de profil ou de rythme à tout moment : **Profil › Mon argent vient de › Modifier**.
+
+### Le loyer
+
+L'app te demande si tu paies un loyer :
+- **Oui** : ajoute son montant, il sera mis de côté chaque mois avant de calculer ton budget du jour ;
+- **Non, je suis logé(e)** (famille, foyer, chez un proche) : pas de loyer, tu ajoutes seulement tes autres charges si tu en as (scolarité, forfait internet, tontine…).
+
+## Tes catégories
+
+Tu peux créer tes propres catégories de dépenses : touche **+ Nouvelle** quand tu ajoutes une dépense, ou va dans **Profil › Mes catégories**. Si tu en retires une, les dépenses déjà notées gardent leur nom.
+
 ## Contenu du dossier
 
 | Fichier | Rôle |
@@ -28,8 +63,9 @@ Autres hébergeurs gratuits possibles : Netlify, Cloudflare Pages ou Vercel. Il 
 
 ## L'installer sur ton téléphone
 
-- **Android (Chrome)** : ouvre le lien › menu ⋮ › **Installer l'application** (ou « Ajouter à l'écran d'accueil »).
-- **iPhone (Safari)** : ouvre le lien › bouton Partager › **Sur l'écran d'accueil**.
+- **Android (Chrome)** : ouvre le lien, un bandeau « Installe Brique » apparaît, touche **Installer**. Sinon : menu ⋮ › **Installer l'application** (ou « Ajouter à l'écran d'accueil »).
+- **iPhone (Safari)** : ouvre le lien › bouton Partager › **Sur l'écran d'accueil**. (Sur iPhone, il faut utiliser Safari.)
+- Le bouton **Installer l'app sur cet appareil** est aussi dans **Profil › Sauvegarde**.
 
 ## Le rappel du soir (gratuit)
 
@@ -45,4 +81,4 @@ Sans serveur, une app web ne peut pas programmer une notification toute seule. D
 
 ## Mettre à jour l'app
 
-Remplace `index.html` dans ton dépôt. Si tu modifies aussi `sw.js`, change le nom du cache (`brique-v1` → `brique-v2`) pour que les téléphones prennent la nouvelle version.
+Remplace `index.html` dans ton dépôt. Si tu modifies aussi `sw.js` ou les icônes, augmente le numéro du cache dans `sw.js` (par exemple `brique-v4` → `brique-v5`) pour que les téléphones prennent la nouvelle version.
