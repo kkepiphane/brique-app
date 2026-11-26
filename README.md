@@ -16,17 +16,18 @@ Application web installable (PWA) pour gérer ses dépenses au quotidien et cons
 | Revenus irréguliers | Freelance, contrats, business | la prochaine rentrée (ou 30 jours par prudence) |
 | Les deux | Salaire + revenus en plus | la prochaine paie |
 | **Étudiant(e), sans salaire** | Parents, famille, bourse, petits jobs | voir ci-dessous |
+| **Élève au lycée** | Argent de poche des parents, de la famille | voir ci-dessous |
 
-### Étudiants
+### Étudiants et lycéens
 
-L'étudiant choisit à quel rythme il reçoit son argent :
+L'étudiant ou le lycéen choisit à quel rythme il reçoit son argent :
 
 - **Chaque jour** : le budget du jour correspond à l'argent reçu ce jour-là. La saisie d'un revenu reprend le montant de la dernière fois.
 - **Chaque semaine** : il choisit le jour (lundi, mardi…). Son argent doit tenir jusqu'à ce jour-là la semaine suivante.
 - **Chaque mois** : il indique le jour du mois.
 - **Ça varie** : l'app compte jusqu'à la prochaine rentrée prévue, ou sur 30 jours par prudence.
 
-Les revenus proposés sont adaptés (*Parents, famille · Bourse · Petit job · Cadeau*), ainsi que les catégories : *Études* apparaît, *Business* est masqué. Les charges fixes (scolarité, forfait…) restent mensuelles, quel que soit le rythme choisi.
+Les revenus proposés sont adaptés (*Parents, famille · Bourse · Petit job · Cadeau*), ainsi que les catégories : *Business* est masqué, et une catégorie *Études* (*École* pour les lycéens) apparaît. Pour les lycéens, les exemples de charges fixes sont la cantine, la cotisation ou le transport scolaire. Les charges fixes (scolarité, forfait…) restent mensuelles, quel que soit le rythme choisi.
 
 ### Loyer
 
@@ -57,6 +58,6 @@ Les revenus proposés sont adaptés (*Parents, famille · Bourse · Petit job ·
 ## Mettre à jour
 
 Modifie les fichiers, puis `git commit` et `git push` : GitHub Pages republie en une minute.
-Si tu modifies `sw.js` ou les icônes, augmente le numéro du cache dans `sw.js` (par exemple `brique-v4` → `brique-v5`) pour que les téléphones prennent la nouvelle version.
+Si tu modifies `sw.js` ou les icônes, augmente le numéro du cache dans `sw.js` (par exemple `brique-v5` → `brique-v6`) pour que les téléphones prennent la nouvelle version.
 
 Guide détaillé : [LISEZMOI.md](LISEZMOI.md)

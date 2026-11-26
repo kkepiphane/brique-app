@@ -177,8 +177,10 @@ const CATS = [
 const CAT = Object.fromEntries(CATS.map(c => [c.id, c]));
 /* Catégories créées par la personne (profil.cats). Une catégorie retirée garde son nom pour l'historique. */
 function myCats() { return (S.profile && S.profile.cats) || []; }
-function catList() { return CATS.slice(0, -1).filter(c => !(c.id === 'business' && S.profile && isStudent(S.profile.mode))).concat(myCats().filter(c => !c.off), CATS.slice(-1)); }
-function catOf(id) { return CAT[id] || myCats().find(c => c.id === id) || CAT.autre; }
+function catList() { return CATS.slice(0, -1).filter(c => !(c.id === 'business' && S.profile && isStudent(S.profile.mode))).map(c => catOf(c.id)).concat(myCats().filter(c => !c.off), CATS.slice(-1)); }
+const SCHOOL_CAT = { id: 'etudes', n: 'École', s: 'Fournitures, photocopies' };
+const isLyceen = () => !!(S.profile && S.profile.mode === 'lyceen');
+function catOf(id) { if (id === 'etudes' && isLyceen()) return SCHOOL_CAT; return CAT[id] || myCats().find(c => c.id === id) || CAT.autre; }
 const DEFAULT_SHORTCUTS = [
   { c: 'transport', a: 500 }, { c: 'nourriture', a: 1500 }, { c: 'telephone', a: 1000 },
   { c: 'nourriture', a: 500 }, { c: 'courses', a: 2000 }, { c: 'transport', a: 300 }
@@ -192,7 +194,8 @@ const INCOME_SRC_ETU = [
   { id: 'cadeau', n: 'Cadeau' }, { id: 'autre', n: 'Autre' }
 ];
 /* Profils : salaire, irrégulier, mixte, étudiant (argent des parents, bourse, petits jobs). */
-const isStudent = m => m === 'etudiant';
+/* Étudiant ou élève du lycée : argent des parents, rythme choisi (jour, semaine, mois). */
+const isStudent = m => m === 'etudiant' || m === 'lyceen';
 /* Rythme de l'argent reçu : 'jour', 'semaine' (payWeekday, 0 = dimanche), 'mois' (payDay) ou null (ça varie).
    Seul l'étudiant choisit son rythme ; les salariés sont payés au mois. */
 function freqOf(o) {
@@ -752,7 +755,7 @@ function viewStats() {
 /* ---------- Écran : Profil ---------- */
 function viewProfile() {
   const p = S.profile;
-  const modeLabel = { salaire: 'Salaire chaque mois', irregulier: 'Revenus irréguliers', mixte: 'Salaire + revenus en plus', etudiant: 'Étudiant(e) · ' + freqLabel(p) }[p.mode];
+  const modeLabel = { salaire: 'Salaire chaque mois', irregulier: 'Revenus irréguliers', mixte: 'Salaire + revenus en plus', etudiant: 'Étudiant(e) · ' + freqLabel(p), lyceen: 'Élève au lycée · ' + freqLabel(p) }[p.mode];
   const bc = budgetCalc();
   return `<main class="shell">
     <h1 class="h1">Profil</h1>
@@ -765,7 +768,7 @@ function viewProfile() {
     </section>
     <section class="card col" style="gap:8px">
       <div class="between"><h2 class="h2" style="font-size:17px">Charges fixes</h2><button class="link" data-act="add-charge">${I.plus('currentColor', 16)} Ajouter</button></div>
-      <p class="xs muted" style="margin:0">${p.housing === 'loge' ? 'Pas de loyer : tu es logé(e). ' : ''}${isStudent(p.mode) ? 'Scolarité, forfait internet, tontine…' : 'Loyer, scolarité, tontine…'} Elles sont mises de côté avant de calculer ton budget du jour.</p>
+      <p class="xs muted" style="margin:0">${p.housing === 'loge' ? 'Pas de loyer : tu es logé(e). ' : ''}${p.mode === 'lyceen' ? 'Cantine, cotisation, transport scolaire…' : isStudent(p.mode) ? 'Scolarité, forfait internet, tontine…' : 'Loyer, scolarité, tontine…'} Elles sont mises de côté avant de calculer ton budget du jour.</p>
       ${(p.charges || []).length ? p.charges.map(c => `<div class="between" style="padding:6px 0"><span class="col" style="gap:1px"><span style="font-weight:600">${esc(c.name)}</span><span class="xs muted">${F(c.amount)} · ${chargePaid(c) ? 'payée pour cette période' : 'à payer'}</span></span><button class="link" data-act="del-charge" data-id="${c.id}" aria-label="Supprimer ${esc(c.name)}">Retirer</button></div>`).join('') : '<p class="small muted" style="margin:4px 0">Aucune charge fixe.</p>'}
     </section>
     <section class="card col" style="gap:8px">
@@ -1034,7 +1037,8 @@ function modeOptions(cur) {
     ['salaire', 'Salaire chaque mois', 'Un salaire fixe, à date connue'],
     ['irregulier', 'Revenus irréguliers', 'Freelance, contrats, business, primes'],
     ['mixte', 'Les deux', 'Un salaire + des revenus en plus'],
-    ['etudiant', 'Étudiant(e), sans salaire', 'Argent des parents, bourse, petits jobs']
+    ['etudiant', 'Étudiant(e), sans salaire', 'Argent des parents, bourse, petits jobs'],
+    ['lyceen', 'Élève au lycée', 'Argent de poche des parents, de la famille']
   ];
   return `<div class="col" style="gap:10px">${opts.map(o => `<button type="button" class="option" data-act="pick-mode" data-m="${o[0]}" aria-pressed="${cur === o[0]}"><span class="col" style="gap:2px"><b>${o[1]}</b><span class="small muted">${o[2]}</span></span></button>`).join('')}</div>`;
 }
@@ -1091,7 +1095,7 @@ function viewOnboarding() {
     <div class="col" style="gap:4px">${f.charges.map((c, i) => `<div class="between card" style="padding:10px 14px"><span class="col" style="gap:1px"><b>${esc(c.name)}</b><span class="xs muted">${F(c.amount)}</span></span>
       <span class="row"><label class="row xs" style="gap:6px;min-height:44px"><input type="checkbox" data-act="ob-paid" data-i="${i}" ${c.paid ? 'checked' : ''}> payée</label><button class="link" data-act="ob-del-charge" data-i="${i}" aria-label="Retirer ${esc(c.name)}">Retirer</button></span></div>`).join('')}</div>
     <form class="col card" style="gap:10px" data-form="ob-charge">
-      <div class="row" style="gap:8px"><input class="input" id="obc-name" placeholder="${isStudent(f.mode) ? 'Scolarité, forfait…' : 'Scolarité, tontine…'}" value="${f.housing === 'loyer' && !f.charges.some(c => /loyer|chambre/i.test(c.name)) ? 'Loyer' : ''}" maxlength="30" aria-label="Nom de la charge" required><input class="input" id="obc-amount" placeholder="Montant" inputmode="numeric" pattern="[0-9 ]*" aria-label="Montant" required style="max-width:130px"></div>
+      <div class="row" style="gap:8px"><input class="input" id="obc-name" placeholder="${f.mode === 'lyceen' ? 'Cantine, cotisation…' : isStudent(f.mode) ? 'Scolarité, forfait…' : 'Scolarité, tontine…'}" value="${f.housing === 'loyer' && !f.charges.some(c => /loyer|chambre/i.test(c.name)) ? 'Loyer' : ''}" maxlength="30" aria-label="Nom de la charge" required><input class="input" id="obc-amount" placeholder="Montant" inputmode="numeric" pattern="[0-9 ]*" aria-label="Montant" required style="max-width:130px"></div>
       <button class="btn btn-ghost" type="submit">${I.plus('currentColor', 18)} Ajouter cette charge</button>
     </form>
     <button class="btn btn-brick btn-block" data-act="ob-next" style="margin-top:auto" ${f.housing ? '' : 'disabled'}>${!f.housing ? 'Réponds à la question du loyer' : f.charges.length ? 'Continuer' : 'Pas de charge fixe, continuer'}</button>`;

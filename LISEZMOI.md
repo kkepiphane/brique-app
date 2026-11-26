@@ -14,20 +14,22 @@ Au début, l'app te demande d'où vient ton argent. Ça change le calcul de ton 
 - **Revenus irréguliers** (freelance, business…) : jusqu'à ta prochaine rentrée, ou 30 jours par prudence si tu ne sais pas.
 - **Les deux** : salaire + revenus en plus.
 - **Étudiant(e), sans salaire** : ton argent vient des parents, de la famille, d'une bourse ou de petits jobs.
+- **Élève au lycée** : ton argent de poche vient des parents ou de la famille.
 
-### Tu es étudiant(e) ?
+### Tu es étudiant(e) ou au lycée ?
 
 Choisis à quel rythme tu reçois ton argent :
 
 | Rythme | Exemple | Comment l'app calcule |
 | --- | --- | --- |
-| **Chaque jour** | Tes parents te donnent 1 000 F chaque matin | Ton budget du jour = l'argent reçu ce jour-là. Note-le chaque jour dans **Revenu** : le montant de la dernière fois est déjà proposé. |
+| **Chaque jour** | Tes parents te donnent 500 F chaque matin pour l'école | Ton budget du jour = l'argent reçu ce jour-là. Note-le chaque jour dans **Revenu** : le montant de la dernière fois est déjà proposé. |
 | **Chaque semaine** | Tu reçois 7 000 F chaque lundi | Ton argent doit tenir jusqu'au lundi suivant. |
 | **Chaque mois** | Bourse ou argent du mois le 5 | Ton argent doit tenir jusqu'au 5 du mois suivant. |
 | **Ça varie** | Tu reçois de l'argent de temps en temps | Jusqu'à la date que tu indiques, ou 30 jours par prudence. |
 
 Quand tu notes un revenu, tu choisis : *Parents, famille*, *Bourse*, *Petit job*, *Cadeau* ou *Autre*. Recevoir l'argent des parents ou la bourse démarre une nouvelle période.
-Tu as aussi une catégorie de dépenses **Études** (photocopies, fournitures).
+Tu as aussi une catégorie de dépenses **Études** (**École** si tu es au lycée) pour les photocopies et fournitures.
+Au lycée, tes charges fixes peuvent être la cantine, une cotisation ou le transport scolaire.
 
 Tu peux changer de profil ou de rythme à tout moment : **Profil › Mon argent vient de › Modifier**.
 
@@ -81,4 +83,4 @@ Sans serveur, une app web ne peut pas programmer une notification toute seule. D
 
 ## Mettre à jour l'app
 
-Remplace `index.html` dans ton dépôt. Si tu modifies aussi `sw.js` ou les icônes, augmente le numéro du cache dans `sw.js` (par exemple `brique-v4` → `brique-v5`) pour que les téléphones prennent la nouvelle version.
+Remplace `index.html` dans ton dépôt. Si tu modifies aussi `sw.js` ou les icônes, augmente le numéro du cache dans `sw.js` (par exemple `brique-v5` → `brique-v6`) pour que les téléphones prennent la nouvelle version.
